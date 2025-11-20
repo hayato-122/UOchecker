@@ -173,7 +173,10 @@ with st.container(height=600, border=False):
 
     # マップ作成
     map_preview = folium.Map(
-        location=st.session_state.center, zoom_start=st.session_state.zoom
+        location=st.session_state.center,
+        zoom_start=st.session_state.zoom,
+        tiles = "https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}",
+        attr = "Google Maps"
     )
 
     # マーカー配置
@@ -189,6 +192,7 @@ with st.container(height=600, border=False):
         map_preview,
         width=700,
         height=500,  # コンテナより少し小さく設定
+        use_container_width=True,
         returned_objects=["last_clicked"],
     )
 
@@ -202,8 +206,10 @@ with st.container(height=600, border=False):
             st.session_state.zoom = 15
             st.rerun()  # ここでスクリプト全体を再実行します
 
+# 座標を住所に変換
+marker_address = geolocator.reverse(st.session_state.marker_location)
 # 座標表示（コンテナの外に配置）
-st.write(f"📍 現在のマーカー位置: {geolocator.reverse(st.session_state.marker_location)}")
+st.write(f"📍 現在のマーカー位置: {marker_address}")
 
 # 決定ボタンを中央揃えで配置
 col_decide_left, col_decide_button, col_decide_right = st.columns([3, 4, 3])
@@ -212,7 +218,7 @@ with col_decide_button:
         if st.session_state.marker_location == "":
             st.warning("現在地を選択してください。")
         else: # 魚判別開始
-            st.success(f"現在地が「{geolocator.reverse(st.session_state.marker_location)}」に設定されました。")
+            st.success(f"現在地が「{marker_address}」に設定されました。")
 
 # ↓をコマンドラインに入力してサーバー作成
 # streamlit run frontend.py --server.port 8501
