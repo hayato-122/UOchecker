@@ -1,6 +1,27 @@
 import streamlit as st
 from PIL import Image
+import folium
+from streamlit_folium import st_folium
+from geopy.geocoders import Nominatim
 
+# webサイト初回起動時の初期設定
+if "center" not in st.session_state:                  # マップの初期位置設定
+    st.session_state.center = [34.694659,135.194954]  # 三ノ宮駅
+if "marker_location" not in st.session_state:         #マーカーの初期位置設定　三ノ宮駅
+    st.session_state.marker_location = [34.694659,135.194954]
+if "zoom" not in st.session_state: # ズームの初期設定
+    st.session_state.zoom = 8
+
+# 日本語の記事として登録するhtml 意味ない可能性あり
+st.markdown(
+    """
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Language" content="ja">
+    """,
+    unsafe_allow_html=True,
+)
+
+# streamlitのサイトのタイトルとレイアウトの設定
 st.set_page_config(page_title="UOチェッカー", layout="centered")
 
 # タイトルを中央揃えで表示
@@ -129,63 +150,69 @@ else:
             st.session_state.uploaded_file = None
             st.rerun()
 
-suggestions = [  # selectboxの候補リスト
-    "神戸",
-    "姫路",
-    "大阪",
-    "京都",
-    "奈良",
-    "和歌山",
-    "滋賀",
-    "福井",
-    "石川",
-    "富山",
-    "名古屋",
-    "岐阜",
-    "静岡",
-    "浜松",
-    "三重",
-    "東京",
-    "横浜",
-    "川崎",
-    "埼玉",
-    "千葉",
-    "茨城",
-    "栃木",
-    "群馬",
-    "宇都宮",
-    "水戸",
-    "高崎",
-    "仙台",
-    "福島",
-    "山形",
-    "秋田",
-    "盛岡",
-    "青森",
-    "弘前",
-    "八戸",
-    "新潟",
-    "長野",
-    "松本",
-    "甲府",
-    "山梨",
-    "富士吉田",
-    "静岡市",
-]
+# 検索機能
 st.write("\n\n")
 st.divider()
-selected = st.selectbox(
-    "現在地を入力", [""] + suggestions
-)  # 現在地検索、選択セレクトボックス作成
+geolocator = Nominatim(user_agent="streamlit-folium-app")
+search_map = st.text_input("地名を入力して検索")
+
+if st.button("検索") and search_map:
+    try:
+        location = geolocator.geocode(search_map)
+        if location:
+            new_location = [location.latitude, location.longitude]
+            st.session_state.center = new_location
+            st.session_state.marker_location = new_location
+            st.session_state.zoom = 15
+            st.rerun()  # 検索時に全体を更新
+    except Exception:
+        st.error("エラーが発生しました")
+
+# マップ表示コンテナ作成
+with st.container(height=600, border=False):
+
+    # マップ作成
+    map_preview = folium.Map(
+        location=st.session_state.center, zoom_start=st.session_state.zoom
+    )
+
+    # マーカー配置
+    folium.Marker(
+        location=st.session_state.marker_location,
+        popup=f"{st.session_state.marker_location}",
+        icon=folium.Icon(color="red", icon="map-marker", prefix="fa"),
+        tooltip="選択位置",
+    ).add_to(map_preview)
+
+    # マップ表示
+    output = st_folium(
+        map_preview,
+        width=700,
+        height=500,  # コンテナより少し小さく設定
+        returned_objects=["last_clicked"],
+    )
+
+    # クリック判定と更新
+    if output and output.get("last_clicked"):
+        clicked_loc = [output["last_clicked"]["lat"], output["last_clicked"]["lng"]]
+
+        if clicked_loc != st.session_state.marker_location:
+            st.session_state.marker_location = clicked_loc
+            st.session_state.center = clicked_loc
+            st.session_state.zoom = 15
+            st.rerun()  # ここでスクリプト全体を再実行します
+
+# 座標表示（コンテナの外に配置）
+st.write(f"📍 現在のマーカー位置: {geolocator.reverse(st.session_state.marker_location)}")
 
 # 決定ボタンを中央揃えで配置
 col_decide_left, col_decide_button, col_decide_right = st.columns([3, 4, 3])
 with col_decide_button:
-    if st.button("決定", width="stretch"):
-        if selected == "":
+    if st.button("検索", width="stretch"):
+        if st.session_state.marker_location == "":
             st.warning("現在地を選択してください。")
-        else:
-            st.success(f"現在地が「{selected}」に設定されました。")
+        else: # 魚判別開始
+            st.success(f"現在地が「{geolocator.reverse(st.session_state.marker_location)}」に設定されました。")
 
 # ↓をコマンドラインに入力してサーバー作成
-# streamlit run main.py --server.port 8501
+# streamlit run frontend.py --server.port 8501
