@@ -1,8 +1,11 @@
+# frontend.py
+
 import streamlit as st
 from PIL import Image
 import folium
 from streamlit_folium import st_folium
 from geopy.geocoders import Nominatim
+from backend import identify_and_check_fish
 
 # webサイト初回起動時の初期設定
 if "center" not in st.session_state:                  # マップの初期位置設定
@@ -165,8 +168,8 @@ if st.button("検索") and search_map:
             st.session_state.marker_location = new_location
             st.session_state.zoom = 15
             st.rerun()  # 検索時に全体を更新
-    except Exception:
-        st.error("エラーが発生しました")
+    except Exception as e:
+        st.error(f"エラーが発生しました: {e}")
 
 # マップ表示コンテナ作成
 with st.container(height=600, border=False):
@@ -207,18 +210,53 @@ with st.container(height=600, border=False):
             st.rerun()  # ここでスクリプト全体を再実行します
 
 # 座標を住所に変換
-marker_address = geolocator.reverse(st.session_state.marker_location)
+marker_address = geolocator.reverse(st.session_state.marker_location,language='ja')
+
 # 座標表示（コンテナの外に配置）
 st.write(f"📍 現在のマーカー位置: {marker_address}")
 
-# 決定ボタンを中央揃えで配置
-col_decide_left, col_decide_button, col_decide_right = st.columns([3, 4, 3])
-with col_decide_button:
+# 検索ボタンを中央揃えで配置
+col_search_fish_left, col_search_fish_button, col_search_fish_right = st.columns([3, 4, 3])
+with col_search_fish_button:
     if st.button("検索", width="stretch"):
-        if st.session_state.marker_location == "":
+        if st.session_state.uploaded_file is None:
+            st.warning("画像をアップロードしてください。")
+        elif st.session_state.marker_location is None:
             st.warning("現在地を選択してください。")
         else: # 魚判別開始
-            st.success(f"現在地が「{marker_address}」に設定されました。")
+            with st.spinner("魚を識別中..."):
+                # 画像データをbytesに変換
+                image_bytes = st.session_state.uploaded_file.getvalue()
+
+                # 住所情報から都道府県と市区町村を抽出
+                address_data = marker_address.raw.get('address', {})
+
+                # 都道府県 Nominatimでは 'province' や 'region' などに入ることがある
+                prefecture = address_data.get('province', address_data.get('region', ''))
+
+                # 市区町村 city, town, village, countyなどを順に探す
+                city = address_data.get('city',
+                address_data.get('town',
+                address_data.get('village',
+                address_data.get('county', ''))))
+
+                # デバッグ用に抽出結果を表示（必要なければ削除可）
+                st.info(f"抽出された位置情報: {prefecture} {city}")
+
+                # backend関数を実行
+                result = identify_and_check_fish(
+                    image_bytes=image_bytes,
+                    prefecture=prefecture,
+                    city=city
+                )
+
+                # 結果の表示
+                if result.get("success"):
+                    st.success("解析完了！")
+                    st.json(result["data"])  # 結果をJSONで表示（適宜きれいなUIに変更してください）
+                else:
+                    st.error(f"エラー: {result.get('error')}")
+                    st.write(result.get('message'))
 
 # ↓をコマンドラインに入力してサーバー作成
 # streamlit run frontend.py --server.port 8501
