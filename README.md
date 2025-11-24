@@ -1,1 +1,1 @@
-Releaseから最新版をダウンロードして解凍、ClipperInstantReplay.exeをダブルクリックで実行
+
