@@ -91,6 +91,15 @@ st.markdown(
     [data-testid="stFileUploader"] section {
         visibility: hidden; /* 元の枠を消す */
     }
+    
+    [data-testid="stFileUploader"] ul {
+        display: none !important;
+    }
+
+    [data-testid="stFileUploader"] small {
+        display: none !important;
+    }
+    
     /* CSSでボタンを作成 */
     [data-testid="stFileUploader"] button {
         visibility: visible;
