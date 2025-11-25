@@ -212,6 +212,7 @@ __marimo__/
 *.json
 firebase_config.json
 serviceAccountKey.json
+.streamlit/secrets.toml
 
 # Python
 __pycache__/
