@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 from anthropic import Anthropic
 from typing import Dict
-
+import streamlit as st
 
 def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None) -> Dict:
     """
@@ -21,7 +21,7 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
         魚の情報を含む辞書
     """
     
-    client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+    client = Anthropic(api_key=os.environ.get(st.secrets("ANTHROPIC_API_KEY")))
     
     location = f"{city}, {prefecture}" if city else prefecture
     
