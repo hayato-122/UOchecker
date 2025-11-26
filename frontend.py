@@ -91,9 +91,9 @@ st.markdown(
 
     /* ファイルアップローダーのCSS */
     [data-testid="stFileUploader"] section {
-        visibility: hidden; /* 元の枠を消す */
+        visibility: hidden;
     }
-    
+
     [data-testid="stFileUploader"] ul {
         display: none !important;
     }
@@ -102,10 +102,10 @@ st.markdown(
         display: none !important;
     }
     
-    /* CSSでボタンを作成 */
-    [data-testid="stFileUploader"] button {
+    /* CSSで画像選択ボタンを作成 */
+    [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"] {
         visibility: visible;
-        width:30vw;
+        width: 30vw;
         height: 180px;
         color: transparent !important;
         background: transparent !important;
@@ -120,8 +120,10 @@ st.markdown(
         margin-right: auto;
     }
 
+    /* 携帯用 */
     @media (max-width: 600px) {
-        [data-testid="stFileUploader"] button {
+        /* 修正箇所 */
+        [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"] {
             width: 80vw;
             margin-top: -20px;
             margin-left: -2%;
@@ -129,18 +131,20 @@ st.markdown(
         }
     }
 
-    [data-testid="stFileUploader"] button:hover {
+    [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"]:hover {
         background-color: rgba(255, 255, 255, 0.1) !important;
         border-color: #ff7b00;
     }
-    [data-testid="stFileUploader"] button::before {
+    
+    [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"]::before {
         content: '📷';
         font-size: 4rem;
         color: #ccc;
         display: block;
         margin-bottom: 0.5rem;
     }
-    [data-testid="stFileUploader"] button::after {
+    
+    [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"]::after {
         content: '画像を選択';
         font-size: 1.2rem;
         color: #fff;
@@ -195,7 +199,7 @@ with col_main_left:
     )
 
     if st.session_state.uploaded_file is None:
-        uploaded_file = st.file_uploader("", type=["png", "jpg", "jpeg"])
+        uploaded_file = st.file_uploader("",type=["png", "jpg", "jpeg"])
         if uploaded_file is not None:
             st.session_state.uploaded_file = uploaded_file
             st.rerun()
