@@ -23,6 +23,8 @@ if "uploaded_file" not in st.session_state:
     st.session_state.uploaded_file = None
 if "uploader_key" not in st.session_state:
     st.session_state.uploader_key = 0
+if "result" not in st.session_state:
+    st.session_state.result = None
 
 # ページ全体のCSS設定
 st.markdown(
@@ -209,6 +211,7 @@ with col_main_left:
                 )
                 if st.button("別の画像を選択", use_container_width=True):
                     st.session_state.uploaded_file = None
+                    st.session_state.result = None
                     st.rerun()
         except Exception as e:
             st.error(f"読み込みエラー: {e}")
@@ -216,110 +219,120 @@ with col_main_left:
 
 # 右カラム
 with col_main_right:
-    st.markdown(
-        """
-        <div style="padding: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.3);">
-            <p style="text-align:center; margin:0; font-weight:bold; color: white;">📍 場所を指定してください</p>
-        </div>
-    """,
-        unsafe_allow_html=True,
-    )
-
-    with st.container():
-        # 検索機能
-        geolocator = Nominatim(user_agent="streamlit-folium-app")
-
-        col_search_in, col_search_btn = st.columns([6, 2])
-        with col_search_in:  # マップ検索入力欄表示
-            search_map = st.text_input(
-                "地名検索", placeholder="例：明石市", label_visibility="collapsed"
-            )
-        with col_search_btn:  # 検索ボタン表示
-            if st.button("検索") and search_map:
-                try:
-                    location = geolocator.geocode(search_map)
-                    if location:
-                        new_location = [location.latitude, location.longitude]
-                        st.session_state.center = new_location
-                        st.session_state.marker_location = new_location
-                        st.session_state.zoom = 15
-                        st.rerun()
-                except Exception as e:
-                    st.error(f"エラーが発生しました: {e}")
-
-        # マップ表示コンテナ
-        with st.container():
-            map_preview = folium.Map(
-                location=st.session_state.center,
-                zoom_start=st.session_state.zoom,
-                tiles="https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}",
-                attr="Google Maps",
-            )
-
-            folium.Marker(
-                location=st.session_state.marker_location,
-                popup=f"{st.session_state.marker_location}",
-                icon=folium.Icon(color="red", icon="map-marker", prefix="fa"),
-            ).add_to(map_preview)
-
-            output = st_folium(
-                map_preview,
-                height=400,
-                use_container_width=True,
-                returned_objects=["last_clicked"],
-            )
-
-            if output and output.get("last_clicked"):
-                clicked_loc = [
-                    output["last_clicked"]["lat"],
-                    output["last_clicked"]["lng"],
-                ]
-                if clicked_loc != st.session_state.marker_location:
-                    st.session_state.marker_location = clicked_loc
-                    st.session_state.center = clicked_loc
-                    st.session_state.zoom = 15
-                    st.rerun()
-
-    marker_address = geolocator.reverse(st.session_state.marker_location, language="ja")
-
-    st.markdown(
-        f"""
-            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center;">
-                <span style="font-size: 0.9em; color: white;">現在選択中の位置:</span><br>
-                <strong style="color: white; font-size: 1.1em;">{marker_address.address if hasattr(marker_address, 'address') else '不明'}</strong>
+    if st.session_state.result is None:
+        st.markdown(
+            """
+            <div style="padding: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.3);">
+                <p style="text-align:center; margin:0; font-weight:bold; color: white;">📍 場所を指定してください</p>
             </div>
         """,
-        unsafe_allow_html=True,
-    )
+            unsafe_allow_html=True,
+        )
 
-    st.write("")
+        with st.container():
+            # 検索機能
+            geolocator = Nominatim(user_agent="streamlit-folium-app")
 
-    if st.button("🐟 魚を判定する", use_container_width=True):
-        if st.session_state.uploaded_file is None:
-            st.warning("画像をアップロードしてください。")
-        elif st.session_state.marker_location is None:
-            st.warning("現在地を選択してください。")
-        else:
-            with st.spinner("魚を識別中..."):
-                image_bytes = st.session_state.uploaded_file.getvalue()
-                address_data = marker_address.raw.get("address", {})
-
-                prefecture = address_data.get(
-                    "province", address_data.get("region", "")
+            col_search_in, col_search_btn = st.columns([6, 2])
+            with col_search_in:  # マップ検索入力欄表示
+                search_map = st.text_input(
+                    "地名検索", placeholder="例：明石市", label_visibility="collapsed"
                 )
-                city = address_data.get(
-                    "city",
-                    address_data.get(
-                        "town",
-                        address_data.get("village", address_data.get("county", "")),
-                    ),
+            with col_search_btn:  # 検索ボタン表示
+                if st.button("検索") and search_map:
+                    try:
+                        location = geolocator.geocode(search_map)
+                        if location:
+                            new_location = [location.latitude, location.longitude]
+                            st.session_state.center = new_location
+                            st.session_state.marker_location = new_location
+                            st.session_state.zoom = 15
+                            st.rerun()
+                    except Exception as e:
+                        st.error(f"エラーが発生しました: {e}")
+
+            # マップ表示コンテナ
+            with st.container():
+                map_preview = folium.Map(
+                    location=st.session_state.center,
+                    zoom_start=st.session_state.zoom,
+                    tiles="https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}",
+                    attr="Google Maps",
                 )
 
-                result = identify_and_check_fish(image_bytes, prefecture, city)
+                folium.Marker(
+                    location=st.session_state.marker_location,
+                    popup=f"{st.session_state.marker_location}",
+                    icon=folium.Icon(color="red", icon="map-marker", prefix="fa"),
+                ).add_to(map_preview)
 
-                if result.get("success"):
-                    st.success("解析完了！")
-                    st.json(result["data"])
-                else:
-                    st.error(f"エラー: {result.get('error')}")
-                    st.write(result.get("message"))
+                output = st_folium(
+                    map_preview,
+                    height=400,
+                    use_container_width=True,
+                    returned_objects=["last_clicked"],
+                )
+
+                if output and output.get("last_clicked"):
+                    clicked_loc = [
+                        output["last_clicked"]["lat"],
+                        output["last_clicked"]["lng"],
+                    ]
+                    if clicked_loc != st.session_state.marker_location:
+                        st.session_state.marker_location = clicked_loc
+                        st.session_state.center = clicked_loc
+                        st.session_state.zoom = 15
+                        st.rerun()
+
+            marker_address = geolocator.reverse(st.session_state.marker_location, language="ja")
+
+            st.markdown(
+                f"""
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center;">
+                        <span style="font-size: 0.9em; color: white;">現在選択中の位置:</span><br>
+                        <strong style="color: white; font-size: 1.1em;">{marker_address.address if hasattr(marker_address, 'address') else '不明'}</strong>
+                    </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        st.write("")
+
+        if st.button("🐟 魚を判定する", use_container_width=True):
+            if st.session_state.uploaded_file is None:
+                st.warning("画像をアップロードしてください。")
+            elif st.session_state.marker_location is None:
+                st.warning("現在地を選択してください。")
+            else:
+                with st.spinner("魚を識別中..."):
+                    image_bytes = st.session_state.uploaded_file.getvalue()
+                    address_data = marker_address.raw.get("address", {})
+
+                    prefecture = address_data.get(
+                        "province", address_data.get("region", "")
+                    )
+                    city = address_data.get(
+                        "city",
+                        address_data.get(
+                            "town",
+                            address_data.get("village", address_data.get("county", "")),
+                        ),
+                    )
+                    result = identify_and_check_fish(image_bytes, prefecture, city)
+                    st.session_state.result = result
+                    st.rerun()
+    else:
+        result = st.session_state.result
+        with st.container():
+            if result.get("success"):
+                st.success("解析完了！")
+                st.json(result["data"])
+            else:
+                st.error(f"エラー: {result.get('error')}")
+                st.write(result.get("message"))
+
+            if st.button("別の画像を選択",key="reset_result_btn",use_container_width=True):
+                st.session_state.uploaded_file = None
+                st.session_state.result = None
+                st.rerun()
+
