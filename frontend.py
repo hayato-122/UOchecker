@@ -325,7 +325,7 @@ with col_main_right:
                     result = identify_and_check_fish(image_bytes, prefecture, city)
                     st.session_state.result = result
                     st.rerun()
-    else:
+    else: # 結果表示
         result = st.session_state.result
         with st.container():
             if result.get("success"):
