@@ -3,6 +3,8 @@
 
 from google.cloud import vision
 from typing import Optional
+from google.oauth2 import service_account
+import streamlit as st
 
 
 def identify_fish_vision(image_bytes: bytes) -> Optional[str]:
@@ -16,7 +18,11 @@ def identify_fish_vision(image_bytes: bytes) -> Optional[str]:
         魚の名前 (英語) または None
     """
     try:
-        client = vision.ImageAnnotatorClient()
+        # vision apiの認証情報をstreamlit secretsから取得
+        key_dict = dict(st.secrets["firebase"])
+        cred = service_account.Credentials.from_service_account_info(key_dict)
+
+        client = vision.ImageAnnotatorClient(credentials=cred)
         image = vision.Image(content=image_bytes)
         
         # ラベル検出
