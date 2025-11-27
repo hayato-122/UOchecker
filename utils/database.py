@@ -12,12 +12,8 @@ if not firebase_admin._apps:
     # TODO: サービスアカウントキーのパスを設定
     # StreamlitのSecretsから読み込む（クラウド用）
     # ローカル環境の場合jsonファイルをtoml形式にして記載した.streamlit/secrets.toml があれば動く
-    if "firebase" in st.secrets:
-        key_dict = dict(st.secrets["firebase"])
-        cred = credentials.Certificate(key_dict)
-    # else:
-    #     # ローカルにjsonファイルがある場合（開発用）
-    #     cred = credentials.Certificate('firebase_config.json')
+    key_dict = dict(st.secrets["firebase"])
+    cred = credentials.Certificate(key_dict)
 
     firebase_admin.initialize_app(cred)
 
