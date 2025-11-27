@@ -235,7 +235,7 @@ with col_main_right:
 
         with st.container():
             # 検索機能
-            geolocator = Nominatim(user_agent="streamlit-folium-app")
+            geolocator = Nominatim(user_agent="streamlit-folium-app",timeout=5)
 
             col_search_in, col_search_btn = st.columns([6, 2])
             with col_search_in:  # マップ検索入力欄表示
