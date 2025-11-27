@@ -7,3 +7,4 @@ python-dotenv
 folium
 streamlit-folium
 geopy
+service_account
