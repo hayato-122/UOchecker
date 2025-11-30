@@ -3,7 +3,6 @@ Pillow
 firebase-admin
 google-cloud-vision
 anthropic
-python-dotenv
 folium
 streamlit-folium
 geopy
