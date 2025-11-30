@@ -1,10 +1,12 @@
 # frontend.py
+import time
 
 import streamlit as st
 from PIL import Image
 import folium
 from streamlit_folium import st_folium
 from geopy.geocoders import Nominatim
+import base64
 
 from backend import identify_and_check_fish
 
@@ -211,7 +213,7 @@ with col_main_left:
                 st.image(
                     image,
                     caption="",
-                    use_container_width=True,
+                    width="stretch",
                 )
                 if st.button("別の画像を選択", use_container_width=True):
                     st.session_state.uploaded_file = None
@@ -300,15 +302,54 @@ with col_main_right:
                 unsafe_allow_html=True,
             )
 
-        st.write("")
-
         if st.button("🐟 魚を判定する", use_container_width=True):
             if st.session_state.uploaded_file is None:
                 st.warning("画像をアップロードしてください。")
             elif st.session_state.marker_location is None:
                 st.warning("現在地を選択してください。")
             else:
-                with st.spinner("魚を識別中..."):
+                # GIFのロード画面読み込み base64形式で読み込み
+                with open("image/wave_load.gif", "rb") as wave_load_gif:
+                    wave_load_data = wave_load_gif.read()
+                    wave_load_base64 = base64.b64encode(wave_load_data).decode("utf-8")
+
+                # ロード画面のHTML
+                wave_load_html = f"""
+                        <style>
+                        .loader-overlay {{
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            width: 100vw;
+                            height: 100vh;
+                            background-color: rgba(0, 0, 0, 0.85);
+                            z-index: 999999;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: center;
+                            align-items: center;
+                            backdrop-filter: blur(5px);
+                        }}
+                        .loader-text {{
+                            color: white;
+                            font-size: 24px;
+                            font-weight: bold;
+                            margin-top: 20px;
+                            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+                        }}
+                        </style>
+                        <div class="loader-overlay">
+                            <img src="data:image/gif;base64,{wave_load_base64}" width="150">
+                            <div class="loader-text">魚を識別中...</div>
+                        </div>
+                        """
+
+                # ローディング画面を表示
+                loading_placeholder = st.empty()
+                loading_placeholder.markdown(wave_load_html, unsafe_allow_html=True)
+
+                try:
+                    # 魚種判別処理
                     image_bytes = st.session_state.uploaded_file.getvalue()
                     address_data = marker_address.raw.get("address", {})
 
@@ -322,8 +363,16 @@ with col_main_right:
                             address_data.get("village", address_data.get("county", "")),
                         ),
                     )
+
                     result = identify_and_check_fish(image_bytes, prefecture, city)
                     st.session_state.result = result
+
+                except Exception as e:
+                    st.error(f"予期せぬエラーが発生しました: {e}")
+
+                finally:
+                    #
+                    loading_placeholder.empty()
                     st.rerun()
     else: # 結果表示
         result = st.session_state.result
