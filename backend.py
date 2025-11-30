@@ -2,14 +2,11 @@
 # メインバックエンドロジック
 
 import os
-from dotenv import load_dotenv
 from utils.vision_api import identify_fish_vision
 from utils.claude_api import generate_fish_info_claude
 from utils.database import get_from_cache, save_to_cache, create_cache_key
 from utils.location import prefecture_from_city
 
-# Load environment variables
-load_dotenv()
 
 
 def identify_and_check_fish(image_bytes: bytes, prefecture: str, city: str = None) -> dict:
