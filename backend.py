@@ -1,11 +1,30 @@
 # backend.py
 # メインバックエンドロジック
-
 import os
+import sys
+from dotenv import load_dotenv
+
+# Load .env file FIRST
+load_dotenv()
+
+# Set Google credentials explicitly
+credentials_path = os.path.join(os.path.dirname(__file__), 'firebase_config.json')
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
+
+print(f"🔑 Loading credentials from: {credentials_path}")
+print(f"🔑 File exists: {os.path.exists(credentials_path)}")
+
+# NOW import everything else
+import json
+from datetime import datetime
+from typing import Dict, Optional
+import anthropic
+from google.cloud import vision
 from utils.vision_api import identify_fish_vision
 from utils.claude_api import generate_fish_info_claude
 from utils.database import get_from_cache, save_to_cache, create_cache_key
 from utils.location import prefecture_from_city
+
 
 
 
