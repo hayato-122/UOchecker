@@ -5,7 +5,7 @@ import streamlit as st
 from PIL import Image
 import folium
 from streamlit_folium import st_folium
-from geopy.geocoders import Nominatim
+from geopy.geocoders import Photon
 import base64
 
 from backend import identify_and_check_fish
@@ -240,7 +240,7 @@ with col_main_right:
 
         with st.container():
             # 検索機能
-            geolocator = Nominatim(user_agent="uochecker-app",timeout=10)
+            geolocator = Photon(user_agent="uochecker-app",timeout=10)
 
             col_search_in, col_search_btn = st.columns([6, 2])
             with col_search_in:  # マップ検索入力欄表示
