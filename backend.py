@@ -2,17 +2,7 @@
 # メインバックエンドロジック
 import os
 import sys
-from dotenv import load_dotenv
 
-# Load .env file FIRST
-load_dotenv()
-
-# Set Google credentials explicitly
-credentials_path = os.path.join(os.path.dirname(__file__), 'firebase_config.json')
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
-
-print(f"🔑 Loading credentials from: {credentials_path}")
-print(f"🔑 File exists: {os.path.exists(credentials_path)}")
 
 # NOW import everything else
 import json
