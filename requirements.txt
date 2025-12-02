@@ -6,3 +6,4 @@ anthropic
 folium
 streamlit-folium
 geopy
+googletrans
