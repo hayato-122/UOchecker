@@ -293,7 +293,7 @@ with col_main_right:
                         st.session_state.zoom = 15
                         st.rerun()
 
-            marker_address = geolocator.reverse(st.session_state.marker_location, language="ja")
+            marker_address = geolocator.reverse(st.session_state.marker_location, language="ja",timeout=5)
 
             st.markdown(
                 f"""
