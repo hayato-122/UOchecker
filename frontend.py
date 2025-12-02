@@ -67,14 +67,14 @@ st.markdown(
     [data-testid="stColumn"]:nth-of-type(1) {
         background: linear-gradient(90deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.35));
         padding: 3rem 2rem;
-        min-height: 100vh;
+        min-height: 98vh;
     }
 
     /* カラム設定 右側（メイン） */
     [data-testid="stColumn"]:nth-of-type(2) {
         background: rgba(0, 0, 0, 0.76);
         padding: 3rem 2rem;
-        min-height: 100vh;
+        min-height: 98vh;
     }
 
     /* 内部カラムのデザインリセット */
@@ -189,12 +189,15 @@ col_main_left, col_main_right = st.columns([1, 1], gap="small")
 
 # 左カラム
 with col_main_left:
+    with open("image/title_logo.png", "rb") as title_logo_img:
+        title_logo_data = title_logo_img.read()
+        title_logo_base64 = base64.b64encode(title_logo_data).decode("utf-8")
     st.markdown(
-        """
+        f"""
         <div style="text-align: center; padding: 20px; margin-bottom: 20px;">
-            <div style="font-size: 56px;">🎣🐟</div>
-            <h1 style="margin: 0; color: white;white-space: nowrap;">UOチェッカー</h1>
-            <p style="color: white;">漁業権を確認しましょう</p>
+            <img src="data:image/gif;base64,{title_logo_base64}" width="150">
+            <h1 style="margin: 0; color: white; white-space: nowrap; user-select: none; -webkit-user-select: none;">UOチェッカー</h1>
+            <p style="color: white; user-select: none; -webkit-user-select: none;">漁業権を確認しましょう</p>
         </div>
     """,
         unsafe_allow_html=True,
@@ -228,8 +231,8 @@ with col_main_right:
     if st.session_state.result is None:
         st.markdown(
             """
-            <div style="padding: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.3);">
-                <p style="text-align:center; margin:0; font-weight:bold; color: white;">📍 場所を指定してください</p>
+            <div style="padding: 10px; margin-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.3);">
+                <p style="text-align:center; margin:0; font-weight:bold; color: white; user-select: none; -webkit-user-select: none;">📍 場所を指定してください</p>
             </div>
         """,
             unsafe_allow_html=True,
@@ -294,8 +297,8 @@ with col_main_right:
 
             st.markdown(
                 f"""
-                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center;">
-                        <span style="font-size: 0.9em; color: white;">現在選択中の位置:</span><br>
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: 3px; text-align: center;">
+                        <span style="font-size: 0.9em; color: white;user-select: none; -webkit-user-select: none;">現在選択中の位置:</span><br>
                         <strong style="color: white; font-size: 1.1em;">{marker_address.address if hasattr(marker_address, 'address') else '不明'}</strong>
                     </div>
                 """,
@@ -321,7 +324,7 @@ with col_main_right:
                             top: 0;
                             left: 0;
                             width: 100vw;
-                            height: 100vh;
+                            height: 98vh;
                             background-color: rgba(0, 0, 0, 0.85);
                             z-index: 999999;
                             display: flex;
