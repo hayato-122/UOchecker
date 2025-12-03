@@ -311,9 +311,10 @@ with col_main_right:
             # sessionを変数に変換
             marker_address = st.session_state.marker_address
 
+            # 現在選択中の位置の表示
             st.markdown(
                 f"""
-                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: 3px; text-align: center;">
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: -10px; text-align: center;">
                         <span style="font-size: 0.9em; color: white;user-select: none; -webkit-user-select: none;">現在選択中の位置:</span><br>
                         <strong style="color: white; font-size: 1.1em;">{marker_address.address if hasattr(marker_address, 'address') else '不明'}</strong>
                     </div>
