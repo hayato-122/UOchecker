@@ -1,35 +1,43 @@
 # frontend.py
-import time
 
 import streamlit as st
 from PIL import Image
 import folium
-from streamlit import session_state
 from streamlit_folium import st_folium
 from geopy.geocoders import Photon
 import base64
 
 from backend import identify_and_check_fish
 
+# geolocatorインスタンス作成　update_addressの逆ジオコーディングを実行するため
+geolocator = Photon(user_agent="uochecker-app",timeout=10)
+
+# 引数を元に逆ジオコーディングを実行する関数
+def update_address(update_location):
+    try:
+        print("デバッグ　update_address")
+        st.session_state.marker_address = geolocator.reverse(update_location, timeout=5)
+    except Exception:
+        st.session_state.marker_address = None
+
 
 # streamlitのページ設定
 st.set_page_config(page_title="UOチェッカー", layout="wide")
 
 # webサイト初回起動時の初期設定
-if "center" not in st.session_state:
-    st.session_state.center = [34.694659, 135.194954]  # 三ノ宮駅
-if "marker_location" not in st.session_state:
-    st.session_state.marker_location = [34.694659, 135.194954]
-if "marker_address" not in st.session_state:
-    st.session_state.marker_address = None
-if "zoom" not in st.session_state:
+if "center" not in st.session_state:                    # マップ表示の中央の初期設定
+    st.session_state.center = [34.694659, 135.194954]   # 三ノ宮駅
+if "marker_location" not in st.session_state:           # マーカーの初期位置の初期設定
+    st.session_state.marker_location = [34.694659, 135.194954] # 三ノ宮駅
+if "marker_address" not in st.session_state:            # マーカーの位置の住所の初期設定
+    update_address(st.session_state.marker_location)    # 関数呼び出しで逆ジオコーディング
+if "zoom" not in st.session_state:                      # マップのズーム倍率の初期設定
     st.session_state.zoom = 8
-if "uploaded_file" not in st.session_state:
+if "uploaded_file" not in st.session_state:             # アップロードファイルの初期設定
     st.session_state.uploaded_file = None
-if "uploader_key" not in st.session_state:
-    st.session_state.uploader_key = 0
-if "result" not in st.session_state:
+if "result" not in st.session_state:                    # 結果の初期設定
     st.session_state.result = None
+
 # ページ全体のCSS設定
 st.markdown(
     """
@@ -187,10 +195,12 @@ st.markdown(
 )
 
 # メインレイアウト
-col_main_left, col_main_right = st.columns([1, 1], gap="small")
+col_main_left, col_main_right = st.columns([1, 1], gap="small") # 1:1の比率に設定
 
-# 左カラム
+# 左カラム タイトル表示と画像プレビュー表示
 with col_main_left:
+    # タイトル表示
+    #タイトルロゴ画像を読み込んでbase64形式に変換
     with open("image/title_logo.png", "rb") as title_logo_img:
         title_logo_data = title_logo_img.read()
         title_logo_base64 = base64.b64encode(title_logo_data).decode("utf-8")
@@ -204,17 +214,17 @@ with col_main_left:
     """,
         unsafe_allow_html=True,
     )
-
-    if st.session_state.uploaded_file is None:
+    # 画像プレビュー表示
+    if st.session_state.uploaded_file is None: # 画像がアップロードされていない場合
         uploaded_file = st.file_uploader("",type=["png", "jpg", "jpeg"])
         if uploaded_file is not None:
             st.session_state.uploaded_file = uploaded_file
             st.rerun()
-    else:
+    else: # 画像がアップロードされた場合
         try:
-            image = Image.open(st.session_state.uploaded_file)
-            col_image_left, col_image_center, col_image_right = st.columns([1, 3, 1])
-            with col_image_center:
+            image = Image.open(st.session_state.uploaded_file) # 画像を読み込み
+            col_image_left, col_image_center, col_image_right = st.columns([1, 3, 1]) # 画像を中央に揃える
+            with col_image_center: # 中央に画像を表示
                 st.image(
                     image,
                     caption="",
@@ -228,7 +238,7 @@ with col_main_left:
             st.error(f"読み込みエラー: {e}")
             st.session_state.uploaded_file = None
 
-# 右カラム
+# 右カラム マップ表示　結果表示
 with col_main_right:
     if st.session_state.result is None:
         st.markdown(
@@ -241,10 +251,8 @@ with col_main_right:
         )
 
         with st.container():
+            # マップ表示
             # 検索機能
-            geolocator = Photon(user_agent="uochecker-app",timeout=10)
-            if st.session_state.marker_address is None:
-                st.session_state.marker_address = geolocator.reverse(st.session_state.marker_location,timeout=5)
             col_search_in, col_search_btn = st.columns([6, 2])
             with col_search_in:  # マップ検索入力欄表示
                 search_map = st.text_input(
@@ -259,7 +267,7 @@ with col_main_right:
                             st.session_state.center = new_location
                             st.session_state.marker_location = new_location
                             st.session_state.zoom = 15
-                            st.session_state.marker_address = geolocator.reverse(st.session_state.marker_location,timeout=5)
+                            update_address(st.session_state.marker_location)
                             st.rerun()
                     except Exception as e:
                         st.error(f"エラーが発生しました: {e}")
@@ -272,32 +280,35 @@ with col_main_right:
                     tiles="https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}",
                     attr="Google Maps",
                 )
-
+                # マーカー表示
                 folium.Marker(
                     location=st.session_state.marker_location,
                     popup=f"{st.session_state.marker_location}",
                     icon=folium.Icon(color="red", icon="map-marker", prefix="fa"),
                 ).add_to(map_preview)
 
-                output = st_folium(
+                # マップ表示
+                map_folium = st_folium(
                     map_preview,
                     height=400,
                     use_container_width=True,
                     returned_objects=["last_clicked"],
                 )
 
-                if output and output.get("last_clicked"):
+                # マップがクリックされたら緯度経度を取得してマーカーを更新
+                if map_folium and map_folium.get("last_clicked"):
                     clicked_loc = [
-                        output["last_clicked"]["lat"],
-                        output["last_clicked"]["lng"],
+                        map_folium["last_clicked"]["lat"],
+                        map_folium["last_clicked"]["lng"],
                     ]
                     if clicked_loc != st.session_state.marker_location:
                         st.session_state.marker_location = clicked_loc
                         st.session_state.center = clicked_loc
                         st.session_state.zoom = 15
-                        st.session_state.marker_address = geolocator.reverse(st.session_state.marker_location,timeout=5)
+                        update_address(st.session_state.marker_location)
                         st.rerun()
 
+            # sessionを変数に変換
             marker_address = st.session_state.marker_address
 
             st.markdown(
@@ -315,6 +326,8 @@ with col_main_right:
                 st.warning("画像をアップロードしてください。")
             elif st.session_state.marker_location is None:
                 st.warning("現在地を選択してください。")
+            elif st.session_state.marker_address is None:
+                st.warning("現在地が不明です。")
             else:
                 # GIFのロード画面読み込み base64形式で読み込み
                 with open("image/wave_load.gif", "rb") as wave_load_gif:
@@ -360,7 +373,6 @@ with col_main_right:
                     # 魚種判別処理
                     image_bytes = st.session_state.uploaded_file.getvalue()
                     address_data = marker_address.raw.get("address", {})
-
                     prefecture = address_data.get(
                         "province", address_data.get("region", "")
                     )
