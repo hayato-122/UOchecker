@@ -4,6 +4,7 @@ import time
 import streamlit as st
 from PIL import Image
 import folium
+from streamlit import session_state
 from streamlit_folium import st_folium
 from geopy.geocoders import Photon
 import base64
@@ -19,6 +20,8 @@ if "center" not in st.session_state:
     st.session_state.center = [34.694659, 135.194954]  # 三ノ宮駅
 if "marker_location" not in st.session_state:
     st.session_state.marker_location = [34.694659, 135.194954]
+if "marker_address" not in st.session_state:
+    st.session_state.marker_address = None
 if "zoom" not in st.session_state:
     st.session_state.zoom = 8
 if "uploaded_file" not in st.session_state:
@@ -27,7 +30,6 @@ if "uploader_key" not in st.session_state:
     st.session_state.uploader_key = 0
 if "result" not in st.session_state:
     st.session_state.result = None
-
 # ページ全体のCSS設定
 st.markdown(
     """
@@ -241,7 +243,8 @@ with col_main_right:
         with st.container():
             # 検索機能
             geolocator = Photon(user_agent="uochecker-app",timeout=10)
-
+            if st.session_state.marker_address is None:
+                st.session_state.marker_address = geolocator.reverse(st.session_state.marker_location,timeout=5)
             col_search_in, col_search_btn = st.columns([6, 2])
             with col_search_in:  # マップ検索入力欄表示
                 search_map = st.text_input(
@@ -256,6 +259,7 @@ with col_main_right:
                             st.session_state.center = new_location
                             st.session_state.marker_location = new_location
                             st.session_state.zoom = 15
+                            st.session_state.marker_address = geolocator.reverse(st.session_state.marker_location,timeout=5)
                             st.rerun()
                     except Exception as e:
                         st.error(f"エラーが発生しました: {e}")
@@ -291,9 +295,10 @@ with col_main_right:
                         st.session_state.marker_location = clicked_loc
                         st.session_state.center = clicked_loc
                         st.session_state.zoom = 15
+                        st.session_state.marker_address = geolocator.reverse(st.session_state.marker_location,timeout=5)
                         st.rerun()
 
-            marker_address = geolocator.reverse(st.session_state.marker_location,timeout=5)
+            marker_address = st.session_state.marker_address
 
             st.markdown(
                 f"""
