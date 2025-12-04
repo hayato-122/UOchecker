@@ -1,33 +1,82 @@
 # frontend.py
-import time
 
-import streamlit as st
-from PIL import Image
-import folium
-from streamlit_folium import st_folium
-from geopy.geocoders import Nominatim
-import base64
+import streamlit as st  # GUI作成、サーバー作成
+from PIL import Image   # 画像の取り扱い
+import folium           # mapデータ
+from streamlit_folium import st_folium # map表示
+from geopy.geocoders import ArcGIS     # マップ情報から緯度経度を取得
+import base64   # 画像の形式を変換
+import requests # API使用
 
-from backend import identify_and_check_fish
+from backend import identify_and_check_fish # backedの関数呼び出し
+
+# geolocatorインスタンス作成　update_addressの逆ジオコーディングを実行するため
+geolocator = ArcGIS(user_agent="uochecker-app-v1.0",timeout=10)
+
+
+def update_address(location_list):
+    # 緯度経度に分割
+    lat, lng = location_list
+
+    # HeartRails GeoAPIのための設定
+    url = "	https://geoapi.heartrails.com/api/json?method=searchByGeoLocation"
+    params = {
+        "method": "searchByGeoLocation",
+        "x": lng,  # 経度
+        "y": lat  # 緯度
+    }
+
+    try:
+        response = requests.get(url, params=params, timeout=5)
+        data = response.json()
+
+        # データ構造の確認
+        if "response" in data and "location" in data["response"]:
+            loc = data["response"]["location"][0]  # 最も近い住所を取得
+
+            # 日本語住所を結合
+            address_text = f"{loc['prefecture']}{loc['city']}{loc['town']}"
+
+            # 住所を保存
+            st.session_state.marker_address = address_text
+            st.session_state.current_prefecture = loc['prefecture']
+            st.session_state.current_city = loc['city']
+            return address_text
+
+        else:
+            st.session_state.marker_address = "住所不明（海上など）"
+            st.session_state.current_prefecture = None
+            st.session_state.current_city = None
+            return "住所不明"
+    except Exception as e:
+        print(f"HeartRails Error: {e}")
+        return None
 
 
 # streamlitのページ設定
 st.set_page_config(page_title="UOチェッカー", layout="wide")
 
 # webサイト初回起動時の初期設定
-if "center" not in st.session_state:
-    st.session_state.center = [34.694659, 135.194954]  # 三ノ宮駅
-if "marker_location" not in st.session_state:
-    st.session_state.marker_location = [34.694659, 135.194954]
-if "zoom" not in st.session_state:
+if "center" not in st.session_state:                    # マップ表示の中央の初期設定
+    st.session_state.center = [34.694659, 135.194954]   # 三ノ宮駅
+if "marker_location" not in st.session_state:           # マーカーの初期位置の初期設定
+    st.session_state.marker_location = [34.694659, 135.194954] # 三ノ宮駅
+if "marker_address" not in st.session_state:            # マーカーの位置の住所の初期設定
+    update_address(st.session_state.marker_location)    # 関数呼び出しで逆ジオコーディング
+if "current_prefecture" not in st.session_state:        # 都道府県を保存するセッションの初期設定
+    st.session_state.current_prefecture = ""
+if "current_city" not in st.session_state:              # 市区町村を保存するセッションの初期設定
+    st.session_state.current_city = ""
+if "zoom" not in st.session_state:                      # マップのズーム倍率の初期設定
     st.session_state.zoom = 8
-if "uploaded_file" not in st.session_state:
+if "uploaded_file" not in st.session_state:             # アップロードファイルの初期設定
     st.session_state.uploaded_file = None
-if "uploader_key" not in st.session_state:
-    st.session_state.uploader_key = 0
-if "result" not in st.session_state:
+if "result" not in st.session_state:                    # 結果の初期設定
     st.session_state.result = None
-
+if "search_map" not in st.session_state:
+    st.session_state.search_map = None
+if "search_error" not in st.session_state:              # 検索エラーメッセージの初期設定
+    st.session_state.search_error = None
 # ページ全体のCSS設定
 st.markdown(
     """
@@ -185,10 +234,12 @@ st.markdown(
 )
 
 # メインレイアウト
-col_main_left, col_main_right = st.columns([1, 1], gap="small")
+col_main_left, col_main_right = st.columns([1, 1], gap="small") # 1:1の比率に設定
 
-# 左カラム
+# 左カラム タイトル表示と画像プレビュー表示
 with col_main_left:
+    # タイトル表示
+    #タイトルロゴ画像を読み込んでbase64形式に変換
     with open("image/title_logo.png", "rb") as title_logo_img:
         title_logo_data = title_logo_img.read()
         title_logo_base64 = base64.b64encode(title_logo_data).decode("utf-8")
@@ -202,17 +253,17 @@ with col_main_left:
     """,
         unsafe_allow_html=True,
     )
-
-    if st.session_state.uploaded_file is None:
+    # 画像プレビュー表示
+    if st.session_state.uploaded_file is None: # 画像がアップロードされていない場合
         uploaded_file = st.file_uploader("",type=["png", "jpg", "jpeg"])
         if uploaded_file is not None:
             st.session_state.uploaded_file = uploaded_file
             st.rerun()
-    else:
+    else: # 画像がアップロードされた場合
         try:
-            image = Image.open(st.session_state.uploaded_file)
-            col_image_left, col_image_center, col_image_right = st.columns([1, 3, 1])
-            with col_image_center:
+            image = Image.open(st.session_state.uploaded_file) # 画像を読み込み
+            col_image_left, col_image_center, col_image_right = st.columns([1, 3, 1]) # 画像を中央に揃える
+            with col_image_center: # 中央に画像を表示
                 st.image(
                     image,
                     caption="",
@@ -226,12 +277,12 @@ with col_main_left:
             st.error(f"読み込みエラー: {e}")
             st.session_state.uploaded_file = None
 
-# 右カラム
+# 右カラム マップ表示　結果表示
 with col_main_right:
     if st.session_state.result is None:
         st.markdown(
             """
-            <div style="padding: 10px; margin-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.3);">
+            <div style="padding: 10px; margin-bottom: 5px; margin-top: -5px; border-bottom: 1px solid rgba(255,255,255,0.3);">
                 <p style="text-align:center; margin:0; font-weight:bold; color: white; user-select: none; -webkit-user-select: none;">📍 場所を指定してください</p>
             </div>
         """,
@@ -239,26 +290,31 @@ with col_main_right:
         )
 
         with st.container():
+            # マップ表示
             # 検索機能
-            geolocator = Nominatim(user_agent="uochecker-app",timeout=10)
-
             col_search_in, col_search_btn = st.columns([6, 2])
             with col_search_in:  # マップ検索入力欄表示
                 search_map = st.text_input(
                     "地名検索", placeholder="例：明石市", label_visibility="collapsed"
                 )
             with col_search_btn:  # 検索ボタン表示
-                if st.button("検索") and search_map:
+                if st.button("検索") and search_map and search_map != st.session_state.search_map:
+                    st.session_state.search_map = search_map
+                    st.session_state.search_error = None
+                    location = None
                     try:
                         location = geolocator.geocode(search_map)
-                        if location:
-                            new_location = [location.latitude, location.longitude]
-                            st.session_state.center = new_location
-                            st.session_state.marker_location = new_location
-                            st.session_state.zoom = 15
-                            st.rerun()
                     except Exception as e:
                         st.error(f"エラーが発生しました: {e}")
+                    if location:
+                        new_location = [location.latitude, location.longitude]
+                        st.session_state.center = new_location
+                        st.session_state.marker_location = new_location
+                        st.session_state.zoom = 15
+                        update_address(st.session_state.marker_location)
+                        st.rerun()
+                    else:
+                        st.session_state.search_error = f"「{search_map}」は見つかりませんでした。別の地名で試してください。"
 
             # マップ表示コンテナ
             with st.container():
@@ -268,48 +324,57 @@ with col_main_right:
                     tiles="https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}",
                     attr="Google Maps",
                 )
-
+                # マーカー表示
                 folium.Marker(
                     location=st.session_state.marker_location,
                     popup=f"{st.session_state.marker_location}",
                     icon=folium.Icon(color="red", icon="map-marker", prefix="fa"),
                 ).add_to(map_preview)
 
-                output = st_folium(
+                # マップ表示
+                map_folium = st_folium(
                     map_preview,
                     height=400,
                     use_container_width=True,
                     returned_objects=["last_clicked"],
                 )
 
-                if output and output.get("last_clicked"):
+                # マップがクリックされたら緯度経度を取得してマーカーを更新
+                if map_folium and map_folium.get("last_clicked"):
                     clicked_loc = [
-                        output["last_clicked"]["lat"],
-                        output["last_clicked"]["lng"],
+                        map_folium["last_clicked"]["lat"],
+                        map_folium["last_clicked"]["lng"],
                     ]
                     if clicked_loc != st.session_state.marker_location:
                         st.session_state.marker_location = clicked_loc
                         st.session_state.center = clicked_loc
                         st.session_state.zoom = 15
+                        update_address(st.session_state.marker_location)
                         st.rerun()
 
-            marker_address = geolocator.reverse(st.session_state.marker_location, language="ja",timeout=5)
+            # sessionを変数に変換
+            marker_address = st.session_state.marker_address
 
+            # 現在選択中の位置の表示
             st.markdown(
                 f"""
-                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: 3px; text-align: center;">
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: -10px; text-align: center;">
                         <span style="font-size: 0.9em; color: white;user-select: none; -webkit-user-select: none;">現在選択中の位置:</span><br>
-                        <strong style="color: white; font-size: 1.1em;">{marker_address.address if hasattr(marker_address, 'address') else '不明'}</strong>
+                        <strong style="color: white; font-size: 1.1em;">{marker_address}</strong>
                     </div>
                 """,
                 unsafe_allow_html=True,
             )
+        if st.session_state.search_error:
+            st.warning(st.session_state.search_error)
 
         if st.button("🐟 魚を判定する", use_container_width=True):
             if st.session_state.uploaded_file is None:
                 st.warning("画像をアップロードしてください。")
             elif st.session_state.marker_location is None:
                 st.warning("現在地を選択してください。")
+            elif st.session_state.marker_address is None:
+                st.warning("現在地が不明です。")
             else:
                 # GIFのロード画面読み込み base64形式で読み込み
                 with open("image/wave_load.gif", "rb") as wave_load_gif:
@@ -353,19 +418,10 @@ with col_main_right:
 
                 try:
                     # 魚種判別処理
-                    image_bytes = st.session_state.uploaded_file.getvalue()
-                    address_data = marker_address.raw.get("address", {})
+                    image_bytes = st.session_state.uploaded_file.getvalue() # 画像データ取得
 
-                    prefecture = address_data.get(
-                        "province", address_data.get("region", "")
-                    )
-                    city = address_data.get(
-                        "city",
-                        address_data.get(
-                            "town",
-                            address_data.get("village", address_data.get("county", "")),
-                        ),
-                    )
+                    prefecture = st.session_state.get("current_prefecture", "")
+                    city = st.session_state.get("current_city", "")
 
                     result = identify_and_check_fish(image_bytes, prefecture, city)
                     st.session_state.result = result
@@ -382,7 +438,9 @@ with col_main_right:
         with st.container():
             if result.get("success"):
                 st.success("解析完了！")
-                st.json(result["data"])
+                data = result["data"]
+                st.subheader(f"判定結果: {data.get('fish_name', '不明')}")
+                st.write(data.get('legal_info', ''))
             else:
                 st.error(f"エラー: {result.get('error')}")
                 st.write(result.get("message"))
