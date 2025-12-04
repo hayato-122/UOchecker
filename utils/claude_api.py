@@ -1,12 +1,20 @@
 # utils/claude_api.py
-# Claude API統合
-
 import os
 import json
 from datetime import datetime
-from anthropic import Anthropic
 from typing import Dict
-import streamlit as st
+
+# Check if running in Streamlit
+try:
+    import streamlit as st
+    # API key already set in backend.py
+    from anthropic import Anthropic
+    client = Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
+except:
+    from anthropic import Anthropic
+    client = Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
+
+
 
 def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None) -> Dict:
     """
@@ -21,7 +29,7 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
         魚の情報を含む辞書
     """
     
-    client = Anthropic(api_key=os.environ.get(st.secrets("ANTHROPIC_API_KEY")))
+    client = Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
     
     location = f"{city}, {prefecture}" if city else prefecture
     
