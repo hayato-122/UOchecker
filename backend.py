@@ -20,7 +20,6 @@ if hasattr(st, 'secrets'):
 from utils.vision_api import identify_fish_vision
 from utils.claude_api import generate_fish_info_claude
 from utils.database import get_from_cache, save_to_cache, create_cache_key
-from utils.location import get_prefecture_name
 
 
 def identify_and_check_fish(image_bytes: bytes, prefecture: str, city: str = None) -> Dict:
@@ -38,10 +37,9 @@ def identify_and_check_fish(image_bytes: bytes, prefecture: str, city: str = Non
     
     try:
         # Clean up prefecture name (remove extra words)
-        prefecture_clean = get_prefecture_name(prefecture)
         
         print(f"\n{'='*60}")
-        print(f"🎣 識別開始: {prefecture_clean}")
+        print(f"🎣 識別開始: {prefecture}")
         if city:
             print(f"📍 市区町村: {city}")
         print(f"{'='*60}\n")
@@ -61,7 +59,7 @@ def identify_and_check_fish(image_bytes: bytes, prefecture: str, city: str = Non
         
         # STEP 2: Check database cache
         print("🔍 ステップ2: データベース確認中...")
-        cache_key = create_cache_key(prefecture_clean, fish_name)
+        cache_key = create_cache_key(prefecture, fish_name)
         cached_data = get_from_cache(cache_key)
         
         if cached_data:
@@ -72,7 +70,7 @@ def identify_and_check_fish(image_bytes: bytes, prefecture: str, city: str = Non
                 "data": cached_data,
                 "identifiedFish": fish_name,
                 "location": {
-                    "prefecture": prefecture_clean,
+                    "prefecture": prefecture,
                     "city": city
                 }
             }
@@ -81,7 +79,7 @@ def identify_and_check_fish(image_bytes: bytes, prefecture: str, city: str = Non
         
         # STEP 3: Generate with Claude API
         print("🤖 ステップ3: キャッシュなし。Claude APIで生成中...")
-        fish_info = generate_fish_info_claude(fish_name, prefecture_clean, city)
+        fish_info = generate_fish_info_claude(fish_name, prefecture, city)
         
         # STEP 4: Save to database
         print("\n💾 ステップ4: データベースに保存中...")
@@ -95,7 +93,7 @@ def identify_and_check_fish(image_bytes: bytes, prefecture: str, city: str = Non
             "data": fish_info,
             "identifiedFish": fish_name,
             "location": {
-                "prefecture": prefecture_clean,
+                "prefecture": prefecture,
                 "city": city
             }
         }
