@@ -45,8 +45,8 @@ def update_address(location_list):
 
         else:
             st.session_state.marker_address = "住所不明（海上など）"
-            st.session_state.current_prefecture = None
-            st.session_state.current_city = None
+            st.session_state.current_prefecture = ""
+            st.session_state.current_city = ""
             return "住所不明"
     except Exception as e:
         print(f"HeartRails Error: {e}")
@@ -176,7 +176,7 @@ st.markdown(
         /* 修正箇所 */
         [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"] {
             width: 80vw;
-            margin-top: -20px;
+            margin-top: -40px;
             margin-left: -2%;
             margin-right: auto;
         }
