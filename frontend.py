@@ -15,6 +15,15 @@ geolocator = ArcGIS(user_agent="uochecker-app-v1.0",timeout=10)
 
 
 def update_address(location_list):
+
+    """
+    Args:
+        location_list: 緯度 軽度
+
+    Returns:
+        緯度 経度の座標の県、街
+
+    """
     # 緯度経度に分割
     lat, lng = location_list
 
@@ -439,7 +448,7 @@ with col_main_right:
             if result.get("success"):
                 st.success("解析完了！")
                 data = result["data"]
-                st.subheader(f"判定結果: {data.get('fish_name', '不明')}")
+                st.subheader(f"判定結果: {result.get('identifiedFish', '不明')}")
                 st.write(data.get('legal_info', ''))
             else:
                 st.error(f"エラー: {result.get('error')}")
