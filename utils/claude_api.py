@@ -1,14 +1,28 @@
 # utils/claude_api.py
 import json
+import os
 from datetime import datetime
-from typing import Dict
-
-# Check if running in Streamlit
+from typing import Dict, Optional
 import streamlit as st
-# API key already set in backend.py
 from anthropic import Anthropic
-client = Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
 
+# Singleton client instance
+_client = None
+
+def get_anthropic_client() -> Anthropic:
+    """Get or create Anthropic client singleton"""
+    global _client
+    if _client is None:
+        api_key = os.getenv('ANTHROPIC_API_KEY')
+        if not api_key and hasattr(st, 'secrets'):
+            api_key = st.secrets.get("ANTHROPIC_API_KEY")
+        
+        if not api_key:
+            raise ValueError("ANTHROPIC_API_KEY が設定されていません")
+        
+        _client = Anthropic(api_key=api_key)
+    
+    return _client
 
 
 def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None) -> Dict:
@@ -24,13 +38,14 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
         魚の情報を含む辞書
     """
     
-    client = Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
-    
-    location = f"{city}, {prefecture}" if city else prefecture
-    
-    prompt = f"""あなたは日本の釣りと海洋生物の専門家です。{location}における"{fish_name}"という魚について、包括的な情報を提供してください。
+    try:
+        client = get_anthropic_client()
+        
+        location = f"{city}, {prefecture}" if city else prefecture
+        
+        prompt = f"""あなたは日本の釣りと海洋生物の専門家です。{location}における"{fish_name}"という魚について、包括的な情報を提供してください。
 
-以下の正確なJSON構造で返してください：
+以下の正確なJSON構造で返してください（JSONのみを返し、他の説明文は含めないでください）：
 
 {{
   "fishNameJa": "日本語名",
@@ -40,41 +55,40 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
   "isLegal": true または false,
   "canTakeHome": true または false,
   "status": "OK" または "RESTRICTED" または "PROHIBITED",
-  "legalExplanation": "日本語での説明",
+  "legalExplanation": "わかりやすい日本語での説明（2-3文で簡潔に）",
   
   "minSize": cm単位の数値 または 0,
   "maxSize": cm単位の数値 または null,
   "dailyLimit": 数値 または null,
-  "seasonalBan": ["月1", "月2"],
-  "bannedMonths": [6, 7],
+  "seasonalBan": ["禁漁期間の説明"],
+  "bannedMonths": [数値の配列],
   
   "isEdible": true または false,
-  "edibilityNotes": "日本語での注意事項",
-  "toxicParts": ["部位1", "部位2"],
-  "preparationWarnings": "日本語での警告",
+  "edibilityNotes": "食用に関する注意事項",
+  "toxicParts": ["毒のある部位"],
+  "preparationWarnings": "調理時の警告",
   
-  "description": "日本語での説明（2-3文）",
-  "season": ["季節1", "季節2"],
+  "description": "魚の特徴説明（2-3文）",
+  "season": ["春", "夏", "秋", "冬"],
   "peakSeason": "旬の時期",
   "habitat": "生息地",
-  "averageSize": "サイズ範囲",
+  "averageSize": "一般的なサイズ範囲",
   
-  "cookingMethods": ["調理法1", "調理法2", "調理法3"],
-  "taste": "味の説明",
-  "nutrition": "栄養情報",
+  "cookingMethods": ["刺身", "焼き魚", "煮付け"],
+  "taste": "味の特徴",
+  "nutrition": "栄養的特徴",
   
-  "regulationSource": "情報源",
+  "regulationSource": "情報源（都道府県の漁業規則等）",
   "confidence": "high" または "medium" または "low"
 }}
 
 重要なルール：
-1. 法的ステータスは保守的に - 不明な場合はRESTRICTEDにする
-2. サイズ制限、1日の漁獲量制限、禁漁期を含める
-3. 魚が食用可能か、毒のある部位があるかを明記
-4. 正確な調理と準備情報を提供
-5. 絶滅危惧種や保護対象の場合はPROHIBITEDにする"""
+1. {location}の具体的な漁業規則を考慮してください
+2. 不確実な場合は保守的に判断し、confidenceを"medium"または"low"に設定
+3. 絶滅危惧種や保護対象の場合は必ず"PROHIBITED"に
+4. サイズ制限は最小サイズのみの場合が多い（maxSizeはnullでOK）
+5. 必ずJSON形式のみを返し、前後に説明文を付けないでください"""
 
-    try:
         message = client.messages.create(
             model="claude-3-5-sonnet-20241022",
             max_tokens=2048,
@@ -86,7 +100,15 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
         )
         
         # JSONレスポンスを抽出
-        response_text = message.content[0].text
+        response_text = message.content[0].text.strip()
+        
+        # JSONブロックの抽出（```json ... ``` で囲まれている場合）
+        if response_text.startswith("```"):
+            # Remove code block markers
+            lines = response_text.split('\n')
+            response_text = '\n'.join(lines[1:-1]) if len(lines) > 2 else response_text
+        
+        # JSONパース
         fish_data = json.loads(response_text)
         
         # メタデータを追加
@@ -97,14 +119,25 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
         fish_data["generatedBy"] = "claude"
         fish_data["generatedAt"] = datetime.utcnow().isoformat()
         
+        print(f"   Claude APIで情報を生成しました")
+        print(f"   ステータス: {fish_data.get('status', 'UNKNOWN')}")
+        print(f"   信頼度: {fish_data.get('confidence', 'unknown')}")
+        
         return fish_data
         
+    except json.JSONDecodeError as e:
+        print(f"   JSON解析エラー: {e}")
+        print(f"   レスポンス: {response_text[:200]}...")
+        return create_fallback_response(fish_name, prefecture, "JSON解析に失敗しました")
+        
     except Exception as e:
-        print(f"❌ Claude APIエラー: {e}")
-        return create_fallback_response(fish_name, prefecture)
+        print(f"  Claude APIエラー: {e}")
+        import traceback
+        traceback.print_exc()
+        return create_fallback_response(fish_name, prefecture, str(e))
 
 
-def create_fallback_response(fish_name: str, prefecture: str) -> Dict:
+def create_fallback_response(fish_name: str, prefecture: str, error_detail: str = "") -> Dict:
     """
     AIが失敗した場合の安全なフォールバック
     """
@@ -115,18 +148,27 @@ def create_fallback_response(fish_name: str, prefecture: str) -> Dict:
         "isLegal": False,
         "canTakeHome": False,
         "status": "UNKNOWN",
-        "legalExplanation": "データを生成できませんでした。現地の規則を確認してください。",
+        "legalExplanation": f"申し訳ございません。この魚の情報を自動で取得できませんでした。\n{prefecture}の漁業協同組合または水産課にお問い合わせください。",
         "minSize": 0,
         "maxSize": None,
         "dailyLimit": None,
         "seasonalBan": [],
         "bannedMonths": [],
         "isEdible": None,
-        "edibilityNotes": "不明",
-        "description": "魚の情報を取得できませんでした。",
+        "edibilityNotes": "食用可能かどうか確認が必要です",
+        "toxicParts": [],
+        "preparationWarnings": "専門家に確認してから調理してください",
+        "description": "魚の詳細情報を取得できませんでした。",
+        "season": [],
+        "peakSeason": "不明",
+        "habitat": "不明",
+        "averageSize": "不明",
         "cookingMethods": [],
+        "taste": "不明",
+        "nutrition": "不明",
         "regulationSource": "取得失敗",
         "confidence": "low",
         "error": True,
+        "errorDetail": error_detail,
         "prefecture": prefecture
     }
