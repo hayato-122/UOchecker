@@ -1,12 +1,13 @@
 # frontend.py
 
 import streamlit as st  # GUI作成、サーバー作成
-from PIL import Image   # 画像の取り扱い
+from PIL import Image, ImageOps  # 画像の取り扱い
 import folium           # mapデータ
 from streamlit_folium import st_folium # map表示
 from geopy.geocoders import ArcGIS     # マップ情報から緯度経度を取得
 import base64   # 画像の形式を変換
 import requests # API使用
+import io # bytes処理用
 
 from backend import identify_and_check_fish # backedの関数呼び出し
 
@@ -437,7 +438,25 @@ with col_main_right:
 
                 try:
                     # 魚種判別処理
-                    image_bytes = st.session_state.uploaded_file.getvalue() # 画像データ取得
+                    # 画像データ取得
+
+                    # 画像を開く
+                    image = Image.open(st.session_state.uploaded_file)
+
+                    # exifの修正 スマホ画像の向きを直す
+                    image = ImageOps.exif_transpose(image)
+
+                    # カラーモードをRGBに統一
+                    if image.mode != "RGB":
+                        image = image.convert("RGB")
+
+                    # 画像をリサイズ
+                    image.thumbnail((1568, 1568))
+
+                    # バイトデータに変換
+                    img_buffer = io.BytesIO()
+                    image.save(img_buffer, format="JPEG", quality=95)
+                    image_bytes = img_buffer.getvalue()
 
                     prefecture = st.session_state.get("current_prefecture", "")
                     city = st.session_state.get("current_city", "")
