@@ -90,7 +90,7 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
 5. 必ずJSON形式のみを返し、前後に説明文を付けないでください"""
 
         message = client.messages.create(
-            model="claude-3-5-sonnet-20241022",
+            model="claude-4-sonnet-20250514",
             max_tokens=2048,
             temperature=0.2,
             messages=[{
