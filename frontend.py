@@ -101,6 +101,24 @@ st.markdown(
         background-attachment: fixed;
     }
 
+    [data-testid="stHeader"] {
+        display: none !important;
+    }
+    
+    footer {
+        visibility: hidden !important;
+        height: 0px !important;
+    }
+    
+    .stDeployButton {
+        display: none !important;
+    }
+    
+    .block-container {
+        padding-top: 0rem !important;
+    }
+    
+
     /* 余白削除とフルワイド化 */
 
     /* メインコンテナのパディングを削除 */
