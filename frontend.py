@@ -100,24 +100,17 @@ st.markdown(
         background-position: center;
         background-attachment: fixed;
     }
-
+    
+    /* ヘッダー削除 */
     [data-testid="stHeader"] {
         display: none !important;
     }
     
+    /* フッター削除 */
     footer {
         visibility: hidden !important;
         height: 0px !important;
     }
-    
-    .stDeployButton {
-        display: none !important;
-    }
-    
-    .block-container {
-        padding-top: 0rem !important;
-    }
-    
 
     /* 余白削除とフルワイド化 */
 
@@ -144,14 +137,18 @@ st.markdown(
     [data-testid="stColumn"]:nth-of-type(1) {
         background: linear-gradient(90deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.35));
         padding: 3rem 2rem;
-        min-height: 98vh;
+        min-height: 100vh;
+        margin-top: -2vh;
+        user-select: none !important;
+        -webkit-user-select: none !important;
     }
 
     /* カラム設定 右側（メイン） */
     [data-testid="stColumn"]:nth-of-type(2) {
         background: rgba(0, 0, 0, 0.76);
         padding: 3rem 2rem;
-        min-height: 98vh;
+        min-height: 100vh;
+        margin-top: -2vh;
         user-select: none !important;
         -webkit-user-select: none !important;
     }
