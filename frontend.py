@@ -133,6 +133,8 @@ st.markdown(
         background: rgba(0, 0, 0, 0.76);
         padding: 3rem 2rem;
         min-height: 98vh;
+        user-select: none !important;
+        -webkit-user-select: none !important;
     }
 
     /* 内部カラムのデザインリセット */
@@ -150,6 +152,11 @@ st.markdown(
     }
 
     /* ファイルアップローダーのCSS */
+    [data-testid="stFileUploader"] {
+        user-select: none;
+        -webkit-user-select: none;
+    }
+    
     [data-testid="stFileUploader"] section {
         visibility: hidden;
     }
@@ -211,8 +218,9 @@ st.markdown(
         display: block;
         font-weight: bold;
         text-shadow: none;
+        user-select: none; -webkit-user-select: none;
     }
-
+    
     /* ボタン共通スタイル */
     div.stButton > button {
         background-color: #ff7b00;
@@ -231,6 +239,8 @@ st.markdown(
 
     /* テキスト入力フォーム */
     div[data-baseweb="input"] {
+        user-select: none;
+        -webkit-user-select: none;
         background-color: rgba(0, 0, 0, 0.65) !important;
         border: 1px solid rgba(255, 255, 255, 0.2);
     }
@@ -254,10 +264,10 @@ with col_main_left:
         title_logo_base64 = base64.b64encode(title_logo_data).decode("utf-8")
     st.markdown(
         f"""
-        <div style="text-align: center; padding: 20px; margin-bottom: 20px;">
+        <div style="text-align: center;user-select: none; -webkit-user-select: none; padding: 20px; margin-bottom: 20px;">
             <img src="data:image/gif;base64,{title_logo_base64}" width="150">
-            <h1 style="margin: 0; color: white; white-space: nowrap; user-select: none; -webkit-user-select: none;">UOチェッカー</h1>
-            <p style="color: white; user-select: none; -webkit-user-select: none;">漁業権を確認しましょう</p>
+            <h1 style="margin: 0; color: white; white-space: nowrap; ">UOチェッカー</h1>
+            <p style="color: white">漁業権を確認しましょう</p>
         </div>
     """,
         unsafe_allow_html=True,
@@ -367,8 +377,8 @@ with col_main_right:
             # 現在選択中の位置の表示
             st.markdown(
                 f"""
-                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: -10px; text-align: center;">
-                        <span style="font-size: 0.9em; color: white;user-select: none; -webkit-user-select: none;">現在選択中の位置:</span><br>
+                    <div style="background: rgba(255,255,255,0.1); user-select: none; -webkit-user-select: none;padding: 15px; border-radius: 8px; margin-top: -10px; text-align: center;">
+                        <span style="font-size: 0.9em; color: white;">現在選択中の位置:</span><br>
                         <strong style="color: white; font-size: 1.1em;">{marker_address}</strong>
                     </div>
                 """,
