@@ -113,8 +113,10 @@ st.markdown(
     }
     
     /* 右下の要素の削除 */
-    .viewerBadge_container__1QSob {
+    div[class*="viewerBadge"] {
+        visibility: hidden !important;
         display: none !important;
+        opacity: 0 !important;
     }
 
     /* 余白削除とフルワイド化 */
@@ -315,7 +317,7 @@ with col_main_right:
     if st.session_state.result is None:
         st.markdown(
             """
-            <div style="padding: 10px; margin-bottom: 5px; margin-top: -7%; border-bottom: 1px solid rgba(255,255,255,0.3);">
+            <div style="padding: 10px; margin-bottom: 5px; margin-top: -10%; border-bottom: 1px solid rgba(255,255,255,0.3);">
                 <p style="text-align:center; margin:0; font-weight:bold; color: white; ">📍 場所を指定してください</p>
             </div>
         """,
