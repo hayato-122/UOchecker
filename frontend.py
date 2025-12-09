@@ -101,6 +101,11 @@ st.markdown(
         background-attachment: fixed;
     }
     
+    /* スクロールバーを非表示にする */
+    * {
+        scrollbar-width: none;
+    }
+    
     /* ヘッダー削除 */
     [data-testid="stHeader"] {
         display: none !important;
