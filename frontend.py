@@ -210,9 +210,13 @@ st.markdown(
         /* 修正箇所 */
         [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"] {
             width: 80vw;
-            margin-top: -40px;
             margin-left: -2%;
             margin-right: auto;
+        }
+        
+        /* 右カラムのマージン削除 */
+        [data-testid="stColumn"]:nth-of-type(2) {
+            margin-top: 0 !important;
         }
     }
 
