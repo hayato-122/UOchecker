@@ -310,7 +310,7 @@ with col_main_right:
     if st.session_state.result is None:
         st.markdown(
             """
-            <div style="padding: 10px; margin-bottom: 5px; margin-top: -5px; border-bottom: 1px solid rgba(255,255,255,0.3);">
+            <div style="padding: 10px; margin-bottom: 5px; margin-top: -50px; border-bottom: 1px solid rgba(255,255,255,0.3);">
                 <p style="text-align:center; margin:0; font-weight:bold; color: white; ">📍 場所を指定してください</p>
             </div>
         """,
