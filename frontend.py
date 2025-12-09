@@ -327,7 +327,7 @@ with col_main_right:
         st.markdown(
             """
             <div style="padding: 10px; margin-bottom: 5px; margin-top: -10%; border-bottom: 1px solid rgba(255,255,255,0.3);">
-                <p style="text-align:center; margin:0; font-weight:bold; color: white; ">📍 場所を指定してください</p>
+                <p style="text-align:center; margin:0; font-weight:bold; color: white; ">📍 test場所を指定してください</p>
             </div>
         """,
             unsafe_allow_html=True,
