@@ -125,7 +125,8 @@ st.markdown(
         padding-bottom: 0rem !important;
         padding-left: 0rem !important;
         padding-right: 0rem !important;
-        max-width: 100% !important;
+        max-width: 100vw !important;
+        max-height: 100vh !important;
     }
 
     /* カラム間の隙間をに0にする */
@@ -142,8 +143,8 @@ st.markdown(
     [data-testid="stColumn"]:nth-of-type(1) {
         background: linear-gradient(90deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.35));
         padding: 3rem 2rem;
-        min-height: 100vh;
-        margin-top: -2vh;
+        min-height: 102vh;
+        margin-top: -2rem;
         user-select: none !important;
         -webkit-user-select: none !important;
     }
@@ -152,8 +153,8 @@ st.markdown(
     [data-testid="stColumn"]:nth-of-type(2) {
         background: rgba(0, 0, 0, 0.76);
         padding: 3rem 2rem;
-        min-height: 100vh;
-        margin-top: -2vh;
+        min-height: 102vh;
+        margin-top: -2rem;
         user-select: none !important;
         -webkit-user-select: none !important;
     }
@@ -278,7 +279,7 @@ with col_main_left:
         title_logo_base64 = base64.b64encode(title_logo_data).decode("utf-8")
     st.markdown(
         f"""
-        <div style="text-align: center; padding: 20px; margin-bottom: 20px;">
+        <div style="text-align: center; margin-top: 0%; margin-bottom: 7%;">
             <img src="data:image/gif;base64,{title_logo_base64}" width="150">
             <h1 style="margin: 0; color: white; white-space: nowrap; ">UOチェッカー</h1>
             <p style="color: white">漁業権を確認しましょう</p>
@@ -315,7 +316,7 @@ with col_main_right:
     if st.session_state.result is None:
         st.markdown(
             """
-            <div style="padding: 10px; margin-bottom: 5px; margin-top: -7%; border-bottom: 1px solid rgba(255,255,255,0.3);">
+            <div style="margin-bottom: 7%; margin-top: 0%; border-bottom: 1px solid rgba(255,255,255,0.3);">
                 <p style="text-align:center; margin:0; font-weight:bold; color: white; ">📍 場所を指定してください</p>
             </div>
         """,
