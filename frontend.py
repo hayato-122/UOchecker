@@ -102,14 +102,19 @@ st.markdown(
     }
     
     /* ヘッダー削除 */
-    [data-testid="stHeader"] {
+    header[data-testid="stHeader"],
+    [data-testid="stToolbar"],
+    #MainMenu {
+        visibility: hidden !important;
         display: none !important;
+        height: 0 !important;
     }
     
     /* フッター削除 */
     footer {
         visibility: hidden !important;
-        height: 0px !important;
+        display: none !important;
+        height: 0 !important;
     }
     
     /* 右下の要素の削除 */
@@ -117,6 +122,10 @@ st.markdown(
         visibility: hidden !important;
         display: none !important;
         opacity: 0 !important;
+    }
+    
+    div[class*="viewerBadge"] svg {
+        display: none !important;
     }
 
     /* 余白削除とフルワイド化 */
