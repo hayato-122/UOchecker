@@ -102,30 +102,14 @@ st.markdown(
     }
     
     /* ヘッダー削除 */
-    header[data-testid="stHeader"],
-    [data-testid="stToolbar"],
-    #MainMenu {
-        visibility: hidden !important;
+    [data-testid="stHeader"] {
         display: none !important;
-        height: 0 !important;
     }
     
     /* フッター削除 */
     footer {
         visibility: hidden !important;
-        display: none !important;
-        height: 0 !important;
-    }
-    
-    /* 右下の要素の削除 */
-    div[class*="viewerBadge"] {
-        visibility: hidden !important;
-        display: none !important;
-        opacity: 0 !important;
-    }
-    
-    div[class*="viewerBadge"] svg {
-        display: none !important;
+        height: 0px !important;
     }
 
     /* 余白削除とフルワイド化 */
@@ -326,8 +310,8 @@ with col_main_right:
     if st.session_state.result is None:
         st.markdown(
             """
-            <div style="padding: 10px; margin-bottom: 5px; margin-top: -10%; border-bottom: 1px solid rgba(255,255,255,0.3);">
-                <p style="text-align:center; margin:0; font-weight:bold; color: white; ">📍 test場所を指定してください</p>
+            <div style="padding: 10px; margin-bottom: 5px; margin-top: -7%; border-bottom: 1px solid rgba(255,255,255,0.3);">
+                <p style="text-align:center; margin:0; font-weight:bold; color: white; ">📍 場所を指定してください</p>
             </div>
         """,
             unsafe_allow_html=True,
