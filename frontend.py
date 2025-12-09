@@ -2,21 +2,20 @@
 
 import streamlit as st  # GUI作成、サーバー作成
 from PIL import Image, ImageOps  # 画像の取り扱い
-import folium           # mapデータ
-from streamlit_folium import st_folium # map表示
-from geopy.geocoders import ArcGIS     # マップ情報から緯度経度を取得
-import base64   # 画像の形式を変換
-import requests # API使用
-import io # bytes処理用
+import folium  # mapデータ
+from streamlit_folium import st_folium  # map表示
+from geopy.geocoders import ArcGIS  # マップ情報から緯度経度を取得
+import base64  # 画像の形式を変換
+import requests  # API使用
+import io  # bytes処理用
 
-from backend import identify_and_check_fish # backedの関数呼び出し
+from backend import identify_and_check_fish  # backedの関数呼び出し
 
 # geolocatorインスタンス作成　update_addressの逆ジオコーディングを実行するため
-geolocator = ArcGIS(user_agent="uochecker-app-v1.0",timeout=10)
+geolocator = ArcGIS(user_agent="uochecker-app-v1.0", timeout=10)
 
 
 def update_address(location_list):
-
     """
     Args:
         location_list: 緯度 軽度
@@ -29,7 +28,7 @@ def update_address(location_list):
     lat, lng = location_list
 
     # HeartRails GeoAPIのための設定
-    url = "	https://geoapi.heartrails.com/api/json?method=searchByGeoLocation"
+    url = " https://geoapi.heartrails.com/api/json?method=searchByGeoLocation"
     params = {
         "method": "searchByGeoLocation",
         "x": lng,  # 経度
@@ -67,25 +66,25 @@ def update_address(location_list):
 st.set_page_config(page_title="UOチェッカー", layout="wide")
 
 # webサイト初回起動時の初期設定
-if "center" not in st.session_state:                    # マップ表示の中央の初期設定
-    st.session_state.center = [34.694659, 135.194954]   # 三ノ宮駅
-if "marker_location" not in st.session_state:           # マーカーの初期位置の初期設定
-    st.session_state.marker_location = [34.694659, 135.194954] # 三ノ宮駅
-if "marker_address" not in st.session_state:            # マーカーの位置の住所の初期設定
-    update_address(st.session_state.marker_location)    # 関数呼び出しで逆ジオコーディング
-if "current_prefecture" not in st.session_state:        # 都道府県を保存するセッションの初期設定
+if "center" not in st.session_state:  # マップ表示の中央の初期設定
+    st.session_state.center = [34.694659, 135.194954]  # 三ノ宮駅
+if "marker_location" not in st.session_state:  # マーカーの初期位置の初期設定
+    st.session_state.marker_location = [34.694659, 135.194954]  # 三ノ宮駅
+if "marker_address" not in st.session_state:  # マーカーの位置の住所の初期設定
+    update_address(st.session_state.marker_location)  # 関数呼び出しで逆ジオコーディング
+if "current_prefecture" not in st.session_state:  # 都道府県を保存するセッションの初期設定
     st.session_state.current_prefecture = ""
-if "current_city" not in st.session_state:              # 市区町村を保存するセッションの初期設定
+if "current_city" not in st.session_state:  # 市区町村を保存するセッションの初期設定
     st.session_state.current_city = ""
-if "zoom" not in st.session_state:                      # マップのズーム倍率の初期設定
+if "zoom" not in st.session_state:  # マップのズーム倍率の初期設定
     st.session_state.zoom = 8
-if "uploaded_file" not in st.session_state:             # アップロードファイルの初期設定
+if "uploaded_file" not in st.session_state:  # アップロードファイルの初期設定
     st.session_state.uploaded_file = None
-if "result" not in st.session_state:                    # 結果の初期設定
+if "result" not in st.session_state:  # 結果の初期設定
     st.session_state.result = None
 if "search_map" not in st.session_state:
     st.session_state.search_map = None
-if "search_error" not in st.session_state:              # 検索エラーメッセージの初期設定
+if "search_error" not in st.session_state:  # 検索エラーメッセージの初期設定
     st.session_state.search_error = None
 # ページ全体のCSS設定
 st.markdown(
@@ -100,21 +99,21 @@ st.markdown(
         background-position: center;
         background-attachment: fixed;
     }
-    
+
     /* スクロールバーを非表示にする */
     * {
         scrollbar-width: none;
     }
-    
+
     /* ヘッダー削除 */
     [data-testid="stHeader"] {
         display: none !important;
     }
-    
+
     /* フッター削除 */
     footer {
         visibility: hidden !important;
-        height: 0px !important;
+        height: 0 !important;
     }
 
     /* 余白削除とフルワイド化 */
@@ -170,11 +169,11 @@ st.markdown(
     /* 文字色を白に統一 */
     h1, h2, h3, p, div, label, span {
         font-family: 'Noto Sans JP', sans-serif !important;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        text-shadow: 0.06rem 0.06rem 0.125rem rgba(0,0,0,0.5);
     }
 
     /* ファイルアップローダーのCSS */
-    
+
     [data-testid="stFileUploader"] section {
         visibility: hidden;
     }
@@ -186,16 +185,16 @@ st.markdown(
     [data-testid="stFileUploader"] small {
         display: none !important;
     }
-    
+
     /* CSSで画像選択ボタンを作成 */
     [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"] {
         visibility: visible;
         width: 30vw;
-        height: 180px;
+        height: 11.25rem; /* 180px -> 11.25rem */
         color: transparent !important;
         background: transparent !important;
-        border: 2px dashed rgba(255, 255, 255, 0.5);
-        border-radius: 15px;
+        border: 0.125rem dashed rgba(255, 255, 255, 0.5); /* 2px -> 0.125rem */
+        border-radius: 0.94rem; /* 15px -> 0.94rem */
         font-size: 1.2rem;
         display: flex;
         flex-direction: column;
@@ -213,7 +212,7 @@ st.markdown(
             margin-left: -2%;
             margin-right: auto;
         }
-        
+
         /* 右カラムのマージン削除 */
         [data-testid="stColumn"]:nth-of-type(2) {
             margin-top: 0 !important;
@@ -224,7 +223,7 @@ st.markdown(
         background-color: rgba(255, 255, 255, 0.1) !important;
         border-color: #ff7b00;
     }
-    
+
     [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"]::before {
         content: '📷';
         font-size: 4rem;
@@ -232,7 +231,7 @@ st.markdown(
         display: block;
         margin-bottom: 0.5rem;
     }
-    
+
     [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"]::after {
         content: '画像を選択';
         font-size: 1.2rem;
@@ -241,13 +240,13 @@ st.markdown(
         font-weight: bold;
         text-shadow: none;
     }
-    
+
     /* ボタン共通スタイル */
     div.stButton > button {
         background-color: #ff7b00;
         color: white;
         border: none;
-        border-radius: 10px;
+        border-radius: 0.625rem; /* 10px -> 0.625rem */
         font-weight: bold;
         padding: 0.5rem 1rem;
         width: 100%;
@@ -272,36 +271,35 @@ st.markdown(
 )
 
 # メインレイアウト
-col_main_left, col_main_right = st.columns([1, 1], gap="small") # 1:1の比率に設定
+col_main_left, col_main_right = st.columns([1, 1], gap="small")  # 1:1の比率に設定
 
 # 左カラム タイトル表示と画像プレビュー表示
 with col_main_left:
     # タイトル表示
-    #タイトルロゴ画像を読み込んでbase64形式に変換
+    # タイトルロゴ画像を読み込んでbase64形式に変換
     with open("image/title_logo.png", "rb") as title_logo_img:
         title_logo_data = title_logo_img.read()
         title_logo_base64 = base64.b64encode(title_logo_data).decode("utf-8")
     st.markdown(
         f"""
-        <div style="text-align: center; margin-top: 0%; margin-bottom: 7%;">
-            <img src="data:image/gif;base64,{title_logo_base64}" width="150">
-            <h1 style="margin: 0; color: white; white-space: nowrap; ">UOチェッカー</h1>
+        <div style="text-align: center; margin-top: 0rem; margin-bottom: 2rem;">
+            <img src="data:image/gif;base64,{title_logo_base64}" style="width: 9.375rem;"> <h1 style="margin: 0; color: white; white-space: nowrap; ">UOチェッカー</h1>
             <p style="color: white">漁業権を確認しましょう</p>
         </div>
     """,
         unsafe_allow_html=True,
     )
     # 画像プレビュー表示
-    if st.session_state.uploaded_file is None: # 画像がアップロードされていない場合
-        uploaded_file = st.file_uploader("",type=["png", "jpg", "jpeg"])
+    if st.session_state.uploaded_file is None:  # 画像がアップロードされていない場合
+        uploaded_file = st.file_uploader("", type=["png", "jpg", "jpeg"])
         if uploaded_file is not None:
             st.session_state.uploaded_file = uploaded_file
             st.rerun()
-    else: # 画像がアップロードされた場合
+    else:  # 画像がアップロードされた場合
         try:
-            image = Image.open(st.session_state.uploaded_file) # 画像を読み込み
-            col_image_left, col_image_center, col_image_right = st.columns([1, 3, 1]) # 画像を中央に揃える
-            with col_image_center: # 中央に画像を表示
+            image = Image.open(st.session_state.uploaded_file)  # 画像を読み込み
+            col_image_left, col_image_center, col_image_right = st.columns([1, 3, 1])  # 画像を中央に揃える
+            with col_image_center:  # 中央に画像を表示
                 st.image(
                     image,
                     caption="",
@@ -320,7 +318,7 @@ with col_main_right:
     if st.session_state.result is None:
         st.markdown(
             """
-            <div style="margin-bottom: 7%; margin-top: 0%; border-bottom: 1px solid rgba(255,255,255,0.3);">
+            <div style="padding: 1.5rem; margin-bottom: 3rem; margin-top: -2.5rem; border-bottom: 0.06rem solid rgba(255,255,255,0.3);">
                 <p style="text-align:center; margin:0; font-weight:bold; color: white; ">📍 場所を指定してください</p>
             </div>
         """,
@@ -396,8 +394,7 @@ with col_main_right:
             # 現在選択中の位置の表示
             st.markdown(
                 f"""
-                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: -10px; text-align: center;">
-                        <span style="font-size: 0.9em; color: white;">現在選択中の位置:</span><br>
+                    <div style="background: rgba(255,255,255,0.1); padding: 0.94rem; border-radius: 0.5rem; margin-top: -0.625rem; text-align: center;"> <span style="font-size: 0.9em; color: white;">現在選択中の位置:</span><br>
                         <strong style="color: white; font-size: 1.1em;">{marker_address}</strong>
                     </div>
                 """,
@@ -434,19 +431,18 @@ with col_main_right:
                             flex-direction: column;
                             justify-content: center;
                             align-items: center;
-                            backdrop-filter: blur(5px);
+                            backdrop-filter: blur(0.3rem); /* 5px -> 0.3rem */
                         }}
                         .loader-text {{
                             color: white;
-                            font-size: 24px;
+                            font-size: 1.5rem; /* 24px -> 1.5rem */
                             font-weight: bold;
-                            margin-top: 20px;
-                            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+                            margin-top: 1.25rem; /* 20px -> 1.25rem */
+                            text-shadow: 0 0 0.625rem rgba(255,255,255,0.5); /* 10px -> 0.625rem */
                         }}
                         </style>
                         <div class="loader-overlay">
-                            <img src="data:image/gif;base64,{wave_load_base64}" width="150">
-                            <div class="loader-text">魚を識別中...</div>
+                            <img src="data:image/gif;base64,{wave_load_base64}" style="width: 9.375rem;"> <div class="loader-text">魚を識別中...</div>
                         </div>
                         """
 
@@ -489,7 +485,7 @@ with col_main_right:
                     #
                     loading_placeholder.empty()
                     st.rerun()
-    else: # 結果表示
+    else:  # 結果表示
         result = st.session_state.result
         with st.container():
             if result.get("success"):
@@ -501,8 +497,7 @@ with col_main_right:
                 st.error(f"エラー: {result.get('error')}")
                 st.write(result.get("message"))
 
-            if st.button("別の画像を選択",key="reset_result_btn",use_container_width=True):
+            if st.button("別の画像を選択", key="reset_result_btn", use_container_width=True):
                 st.session_state.uploaded_file = None
                 st.session_state.result = None
                 st.rerun()
-
