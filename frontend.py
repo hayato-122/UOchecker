@@ -86,6 +86,9 @@ if "search_map" not in st.session_state:
     st.session_state.search_map = None
 if "search_error" not in st.session_state:  # 検索エラーメッセージの初期設定
     st.session_state.search_error = None
+if "search_history" not in st.session_state:  # 検索履歴リストの初期化
+    st.session_state.search_history = []
+
 # ページ全体のCSS設定
 st.markdown(
     """
@@ -190,11 +193,11 @@ st.markdown(
     [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"] {
         visibility: visible;
         width: 30vw;
-        height: 11.25rem; /* 180px -> 11.25rem */
+        height: 11.25rem;
         color: transparent !important;
         background: transparent !important;
-        border: 0.125rem dashed rgba(255, 255, 255, 0.5); /* 2px -> 0.125rem */
-        border-radius: 0.94rem; /* 15px -> 0.94rem */
+        border: 0.125rem dashed rgba(255, 255, 255, 0.5);
+        border-radius: 0.94rem;
         font-size: 1.2rem;
         display: flex;
         flex-direction: column;
@@ -245,7 +248,7 @@ st.markdown(
         background-color: #ff7b00;
         color: white;
         border: none;
-        border-radius: 0.625rem; /* 10px -> 0.625rem */
+        border-radius: 0.625rem;
         font-weight: bold;
         padding: 0.5rem 1rem;
         width: 100%;
@@ -348,6 +351,25 @@ with col_main_right:
                         st.session_state.marker_location = new_location
                         st.session_state.zoom = 15
                         update_address(st.session_state.marker_location)
+
+                        # 履歴登録
+                        if search_map not in st.session_state.search_history:
+
+                            # 履歴を住所名、緯度、経度で保存
+                            new_history = {
+                                "name": search_map,
+                                "lat": location.latitude,
+                                "lng": location.longitude,
+                                "address": st.session_state.marker_address,
+                                "prefecture": st.session_state.current_prefecture,
+                                "city": st.session_state.current_city
+                            }
+
+                            # 履歴をセッションに保存
+                            st.session_state.search_history.insert(0, new_history)
+                            # 履歴が3件を超えたら古い履歴から削除
+                            if len(st.session_state.search_history) > 3:
+                                st.session_state.search_history.pop()
                         st.rerun()
                     else:
                         st.session_state.search_error = f"「{search_map}」は見つかりませんでした。別の地名で試してください。"
@@ -485,6 +507,34 @@ with col_main_right:
                     #
                     loading_placeholder.empty()
                     st.rerun()
+
+        # 履歴表示
+        if st.session_state.search_history:
+            st.markdown("""
+                        <div style="margin-top: 1.5rem; margin-bottom: 0.5rem; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 1rem;">
+                            <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">検索履歴</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+
+            # 履歴をボタンとして表示
+            for history_list in st.session_state.search_history:
+                history_name = history_list["name"]
+
+                if st.button(f"📍 {history_name}", use_container_width=True):
+                    # マーカーの位置を表示
+                    new_location = [history_list["lat"], history_list["lng"]]
+                    st.session_state.center = new_location
+                    st.session_state.marker_location = new_location
+                    st.session_state.zoom = 15
+
+                    # 住所情報の更新
+                    st.session_state.marker_address = history_list["address"]
+                    st.session_state.current_prefecture = history_list["prefecture"]
+                    st.session_state.current_city = history_list["city"]
+
+                    st.session_state.search_error = None
+                    st.rerun()
+
     else:  # 結果表示
         result = st.session_state.result
         with st.container():
