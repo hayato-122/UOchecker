@@ -66,14 +66,6 @@ def update_address(location_list):
 # streamlitのページ設定
 st.set_page_config(page_title="UOチェッカー", layout="wide")
 
-# googleの自動翻訳のポップアップを非表示
-st.markdown(
-    """
-    <meta name="google" content="notranslate">
-    """,
-    unsafe_allow_html=True
-)
-
 # webサイト初回起動時の初期設定
 if "center" not in st.session_state:  # マップ表示の中央の初期設定
     st.session_state.center = [34.694659, 135.194954]  # 三ノ宮駅
