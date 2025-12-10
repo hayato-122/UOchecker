@@ -243,20 +243,41 @@ st.markdown(
         text-shadow: none;
     }
 
-    /* ボタン共通スタイル */
+    /* ボタン全体の基本設定 */
     div.stButton > button {
-        background-color: #ff7b00;
-        color: white;
-        border: none;
         border-radius: 0.625rem;
         font-weight: bold;
-        padding: 0.5rem 1rem;
         width: 100%;
         transition: 0.3s;
     }
-    div.stButton > button:hover {
+
+    /* Primaryボタン */
+    div.stButton > button[kind="primary"] {
+        background-color: #ff7b00;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+    }
+    div.stButton > button[kind="primary"]:hover {
         background-color: #e06c00;
         color: white;
+    }
+
+    /* Secondaryボタン */
+    div.stButton > button[kind="secondary"] {
+        background-color: rgba(255, 255, 255, 0.05); /* うっすら背景 */
+        color: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.2); /* 薄い枠線 */
+        padding: 0.4rem 1rem;
+        text-align: left; /* 文字を左寄せ */
+        display: flex;
+        justify-content: flex-start; /* アイコンと文字を左側に */
+    }
+    div.stButton > button[kind="secondary"]:hover {
+        background-color: rgba(255, 255, 255, 0.2); /* ホバー時は少し明るく */
+        border-color: rgba(255, 255, 255, 0.5);
+        color: #ff7b00; /* 文字色をアクセントカラーに */
+        padding-left: 1.5rem !important;
     }
 
     /* テキスト入力フォーム */
@@ -308,7 +329,7 @@ with col_main_left:
                     caption="",
                     width="stretch",
                 )
-                if st.button("別の画像を選択", use_container_width=True):
+                if st.button("別の画像を選択", use_container_width=True,type="primary"):
                     st.session_state.uploaded_file = None
                     st.session_state.result = None
                     st.rerun()
@@ -337,7 +358,7 @@ with col_main_right:
                     "地名検索", placeholder="例：明石市", label_visibility="collapsed"
                 )
             with col_search_btn:  # 検索ボタン表示
-                if st.button("検索") and search_map and search_map != st.session_state.search_map:
+                if st.button("検索",type="primary") and search_map and search_map != st.session_state.search_map:
                     st.session_state.search_map = search_map
                     st.session_state.search_error = None
                     location = None
@@ -425,7 +446,7 @@ with col_main_right:
         if st.session_state.search_error:
             st.warning(st.session_state.search_error)
 
-        if st.button("🐟 魚を判定する", use_container_width=True):
+        if st.button("🐟 魚を判定する", use_container_width=True,type="primary"):
             if st.session_state.uploaded_file is None:
                 st.warning("画像をアップロードしてください。")
             elif st.session_state.marker_location is None:
@@ -520,7 +541,7 @@ with col_main_right:
             for history_list in st.session_state.search_history:
                 history_name = history_list["name"]
 
-                if st.button(f"📍 {history_name}", use_container_width=True):
+                if st.button(f"📍 {history_name}", use_container_width=True,type="secondary"):
                     # マーカーの位置を表示
                     new_location = [history_list["lat"], history_list["lng"]]
                     st.session_state.center = new_location
@@ -547,7 +568,7 @@ with col_main_right:
                 st.error(f"エラー: {result.get('error')}")
                 st.write(result.get("message"))
 
-            if st.button("別の画像を選択", key="reset_result_btn", use_container_width=True):
+            if st.button("別の画像を選択", key="reset_result_btn", use_container_width=True,type="primary"):
                 st.session_state.uploaded_file = None
                 st.session_state.result = None
                 st.rerun()
