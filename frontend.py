@@ -8,6 +8,7 @@ from geopy.geocoders import ArcGIS  # マップ情報から緯度経度を取得
 import base64  # 画像の形式を変換
 import requests  # API使用
 import io  # bytes処理用
+import streamlit.components.v1 as components # 日本語設定用
 
 from backend import identify_and_check_fish  # backedの関数呼び出し
 
@@ -65,6 +66,14 @@ def update_address(location_list):
 # streamlitのページ設定
 st.set_page_config(page_title="UOチェッカー", layout="wide")
 
+# 言語設定を "ja" に変更
+components.html("""
+    <script>
+        // 即時実行
+        window.parent.document.documentElement.lang = 'ja';
+    </script>
+""", height=0, width=0)
+
 # webサイト初回起動時の初期設定
 if "center" not in st.session_state:  # マップ表示の中央の初期設定
     st.session_state.center = [34.694659, 135.194954]  # 三ノ宮駅
@@ -86,6 +95,9 @@ if "search_map" not in st.session_state:
     st.session_state.search_map = None
 if "search_error" not in st.session_state:  # 検索エラーメッセージの初期設定
     st.session_state.search_error = None
+if "search_history" not in st.session_state:  # 検索履歴リストの初期化
+    st.session_state.search_history = []
+
 # ページ全体のCSS設定
 st.markdown(
     """
@@ -190,11 +202,11 @@ st.markdown(
     [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"] {
         visibility: visible;
         width: 30vw;
-        height: 11.25rem; /* 180px -> 11.25rem */
+        height: 11.25rem;
         color: transparent !important;
         background: transparent !important;
-        border: 0.125rem dashed rgba(255, 255, 255, 0.5); /* 2px -> 0.125rem */
-        border-radius: 0.94rem; /* 15px -> 0.94rem */
+        border: 0.125rem dashed rgba(255, 255, 255, 0.5);
+        border-radius: 0.94rem;
         font-size: 1.2rem;
         display: flex;
         flex-direction: column;
@@ -206,7 +218,6 @@ st.markdown(
 
     /* 携帯用 */
     @media (max-width: 600px) {
-        /* 修正箇所 */
         [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"] {
             width: 80vw;
             margin-left: -2%;
@@ -241,20 +252,41 @@ st.markdown(
         text-shadow: none;
     }
 
-    /* ボタン共通スタイル */
+    /* ボタン全体の基本設定 */
     div.stButton > button {
-        background-color: #ff7b00;
-        color: white;
-        border: none;
-        border-radius: 0.625rem; /* 10px -> 0.625rem */
+        border-radius: 0.625rem;
         font-weight: bold;
-        padding: 0.5rem 1rem;
         width: 100%;
         transition: 0.3s;
     }
-    div.stButton > button:hover {
+
+    /* Primaryボタン */
+    div.stButton > button[kind="primary"] {
+        background-color: #ff7b00;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+    }
+    div.stButton > button[kind="primary"]:hover {
         background-color: #e06c00;
         color: white;
+    }
+
+    /* Secondaryボタン */
+    div.stButton > button[kind="secondary"] {
+        background-color: rgba(255, 255, 255, 0.05); /* うっすら背景 */
+        color: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.2); /* 薄い枠線 */
+        padding: 0.4rem 1rem;
+        text-align: left; /* 文字を左寄せ */
+        display: flex;
+        justify-content: flex-start; /* アイコンと文字を左側に */
+    }
+    div.stButton > button[kind="secondary"]:hover {
+        background-color: rgba(255, 255, 255, 0.2); /* ホバー時は少し明るく */
+        border-color: rgba(255, 255, 255, 0.5);
+        color: #ff7b00; /* 文字色をアクセントカラーに */
+        padding-left: 1.5rem !important;
     }
 
     /* テキスト入力フォーム */
@@ -282,11 +314,12 @@ with col_main_left:
         title_logo_base64 = base64.b64encode(title_logo_data).decode("utf-8")
     st.markdown(
         f"""
-        <div style="text-align: center; margin-top: 0rem; margin-bottom: 2rem;">
-            <img src="data:image/gif;base64,{title_logo_base64}" style="width: 9.375rem;"> <h1 style="margin: 0; color: white; white-space: nowrap; ">UOチェッカー</h1>
-            <p style="color: white">漁業権を確認しましょう</p>
-        </div>
-    """,
+            <div style="text-align: center; margin-top: 0rem; margin-bottom: 2rem;">
+                <img src="data:image/gif;base64,{title_logo_base64}" style="width: 9.375rem;pointer-events: none; -webkit-user-drag: none;">
+                <div style="margin: 0; color: white; white-space: nowrap; font-size: 3rem; font-weight: bold; line-height: 1.2;">UOチェッカー</div>
+                <p style="color: white; font-size: 1.8rem; font-weight: bold; margin-top: 0.5rem;">漁業権を確認しましょう</p>
+            </div>
+        """,
         unsafe_allow_html=True,
     )
     # 画像プレビュー表示
@@ -305,7 +338,7 @@ with col_main_left:
                     caption="",
                     width="stretch",
                 )
-                if st.button("別の画像を選択", use_container_width=True):
+                if st.button("別の画像を選択", use_container_width=True,type="primary"):
                     st.session_state.uploaded_file = None
                     st.session_state.result = None
                     st.rerun()
@@ -334,7 +367,7 @@ with col_main_right:
                     "地名検索", placeholder="例：明石市", label_visibility="collapsed"
                 )
             with col_search_btn:  # 検索ボタン表示
-                if st.button("検索") and search_map and search_map != st.session_state.search_map:
+                if st.button("検索",type="primary") and search_map and search_map != st.session_state.search_map:
                     st.session_state.search_map = search_map
                     st.session_state.search_error = None
                     location = None
@@ -348,6 +381,25 @@ with col_main_right:
                         st.session_state.marker_location = new_location
                         st.session_state.zoom = 15
                         update_address(st.session_state.marker_location)
+
+                        # 履歴登録
+                        if search_map not in st.session_state.search_history:
+
+                            # 履歴を住所名、緯度、経度で保存
+                            new_history = {
+                                "name": search_map,
+                                "lat": location.latitude,
+                                "lng": location.longitude,
+                                "address": st.session_state.marker_address,
+                                "prefecture": st.session_state.current_prefecture,
+                                "city": st.session_state.current_city
+                            }
+
+                            # 履歴をセッションに保存
+                            st.session_state.search_history.insert(0, new_history)
+                            # 履歴が3件を超えたら古い履歴から削除
+                            if len(st.session_state.search_history) > 3:
+                                st.session_state.search_history.pop()
                         st.rerun()
                     else:
                         st.session_state.search_error = f"「{search_map}」は見つかりませんでした。別の地名で試してください。"
@@ -403,7 +455,7 @@ with col_main_right:
         if st.session_state.search_error:
             st.warning(st.session_state.search_error)
 
-        if st.button("🐟 魚を判定する", use_container_width=True):
+        if st.button("🐟 魚を判定する", use_container_width=True,type="primary"):
             if st.session_state.uploaded_file is None:
                 st.warning("画像をアップロードしてください。")
             elif st.session_state.marker_location is None:
@@ -485,6 +537,34 @@ with col_main_right:
                     #
                     loading_placeholder.empty()
                     st.rerun()
+
+        # 履歴表示
+        if st.session_state.search_history:
+            st.markdown("""
+                        <div style="margin-top: 1.5rem; margin-bottom: 0.5rem; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 1rem;">
+                            <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">検索履歴</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+
+            # 履歴をボタンとして表示
+            for history_list in st.session_state.search_history:
+                history_name = history_list["name"]
+
+                if st.button(f"📍 {history_name}", use_container_width=True,type="secondary"):
+                    # マーカーの位置を表示
+                    new_location = [history_list["lat"], history_list["lng"]]
+                    st.session_state.center = new_location
+                    st.session_state.marker_location = new_location
+                    st.session_state.zoom = 15
+
+                    # 住所情報の更新
+                    st.session_state.marker_address = history_list["address"]
+                    st.session_state.current_prefecture = history_list["prefecture"]
+                    st.session_state.current_city = history_list["city"]
+
+                    st.session_state.search_error = None
+                    st.rerun()
+
     else:  # 結果表示
         result = st.session_state.result
         with st.container():
@@ -497,7 +577,7 @@ with col_main_right:
                 st.error(f"エラー: {result.get('error')}")
                 st.write(result.get("message"))
 
-            if st.button("別の画像を選択", key="reset_result_btn", use_container_width=True):
+            if st.button("別の画像を選択", key="reset_result_btn", use_container_width=True,type="primary"):
                 st.session_state.uploaded_file = None
                 st.session_state.result = None
                 st.rerun()
