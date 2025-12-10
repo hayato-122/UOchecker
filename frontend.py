@@ -66,6 +66,27 @@ def update_address(location_list):
 # streamlitのページ設定
 st.set_page_config(page_title="UOチェッカー", layout="wide")
 
+st.markdown(
+    """
+    <script>
+        var meta = document.createElement('meta');
+        meta.name = "google";
+        meta.content = "notranslate";
+        document.getElementsByTagName('head')[0].appendChild(meta);
+
+        document.body.classList.add('notranslate');
+
+        const observer = new MutationObserver(function() {
+            if (!document.body.classList.contains('notranslate')) {
+                document.body.classList.add('notranslate');
+            }
+        });
+        observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    </script>
+    """,
+    unsafe_allow_html=True
+)
+
 # webサイト初回起動時の初期設定
 if "center" not in st.session_state:  # マップ表示の中央の初期設定
     st.session_state.center = [34.694659, 135.194954]  # 三ノ宮駅
