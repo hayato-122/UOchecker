@@ -18,4 +18,4 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git push https://hayato-122:$HF_TOKEN@huggingface.co/spaces/hayato-122/UOchecker HEAD:main
+          git push -f https://hayato-122:$HF_TOKEN@huggingface.co/spaces/hayato-122/UOchecker HEAD:main
