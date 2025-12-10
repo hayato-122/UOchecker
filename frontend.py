@@ -206,7 +206,6 @@ st.markdown(
 
     /* 携帯用 */
     @media (max-width: 600px) {
-        /* 修正箇所 */
         [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"] {
             width: 80vw;
             margin-left: -2%;
@@ -282,11 +281,12 @@ with col_main_left:
         title_logo_base64 = base64.b64encode(title_logo_data).decode("utf-8")
     st.markdown(
         f"""
-        <div style="text-align: center; margin-top: 0rem; margin-bottom: 2rem;">
-            <img src="data:image/gif;base64,{title_logo_base64}" style="width: 9.375rem;"> <h1 style="margin: 0; color: white; white-space: nowrap; ">UOチェッカー</h1>
-            <p style="color: white">漁業権を確認しましょう</p>
-        </div>
-    """,
+            <div style="text-align: center; margin-top: 0rem; margin-bottom: 2rem;">
+                <img src="data:image/gif;base64,{title_logo_base64}" style="width: 9.375rem;pointer-events: none; -webkit-user-drag: none;">
+                <div style="margin: 0; color: white; white-space: nowrap; font-size: 4rem; font-weight: bold; line-height: 1.2;">UOチェッカー</div>
+                <p style="color: white; font-size: 1.8rem; font-weight: bold; margin-top: 0.5rem;">漁業権を確認しましょう</p>
+            </div>
+        """,
         unsafe_allow_html=True,
     )
     # 画像プレビュー表示
