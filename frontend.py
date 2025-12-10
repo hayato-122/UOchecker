@@ -8,6 +8,7 @@ from geopy.geocoders import ArcGIS  # マップ情報から緯度経度を取得
 import base64  # 画像の形式を変換
 import requests  # API使用
 import io  # bytes処理用
+import streamlit.components.v1 as components # 日本語設定用
 
 from backend import identify_and_check_fish  # backedの関数呼び出し
 
@@ -64,6 +65,14 @@ def update_address(location_list):
 
 # streamlitのページ設定
 st.set_page_config(page_title="UOチェッカー", layout="wide")
+
+# 言語設定を "ja" に変更
+components.html("""
+    <script>
+        // 即時実行
+        window.parent.document.documentElement.lang = 'ja';
+    </script>
+""", height=0, width=0)
 
 # webサイト初回起動時の初期設定
 if "center" not in st.session_state:  # マップ表示の中央の初期設定
@@ -307,7 +316,7 @@ with col_main_left:
         f"""
             <div style="text-align: center; margin-top: 0rem; margin-bottom: 2rem;">
                 <img src="data:image/gif;base64,{title_logo_base64}" style="width: 9.375rem;pointer-events: none; -webkit-user-drag: none;">
-                <div style="margin: 0; color: white; white-space: nowrap; font-size: 4rem; font-weight: bold; line-height: 1.2;">UOチェッカー</div>
+                <div style="margin: 0; color: white; white-space: nowrap; font-size: 3rem; font-weight: bold; line-height: 1.2;">UOチェッカー</div>
                 <p style="color: white; font-size: 1.8rem; font-weight: bold; margin-top: 0.5rem;">漁業権を確認しましょう</p>
             </div>
         """,
