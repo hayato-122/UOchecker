@@ -66,13 +66,13 @@ def update_address(location_list):
 # streamlitのページ設定
 st.set_page_config(page_title="UOチェッカー", layout="wide")
 
-# 言語設定を "ja" に変更
-components.html("""
-    <script>
-        // 即時実行
-        window.parent.document.documentElement.lang = 'ja';
-    </script>
-""", height=0, width=0)
+# googleの自動翻訳のポップアップを非表示
+st.markdown(
+    """
+    <meta name="google" content="notranslate">
+    """,
+    unsafe_allow_html=True
+)
 
 # webサイト初回起動時の初期設定
 if "center" not in st.session_state:  # マップ表示の中央の初期設定
