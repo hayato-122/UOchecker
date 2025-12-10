@@ -3,7 +3,6 @@ on:
   push:
     branches: [main,feature-hugging]
 
-  # 手動でも実行できるようにする設定
   workflow_dispatch:
 
 jobs:
@@ -18,6 +17,5 @@ jobs:
       - name: Push to hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        # ↓↓↓ ここを書き換えました ↓↓↓
         run: |
-          git push https://hayato-122:$HF_TOKEN@huggingface.co/spaces/hayato-122/UOchecker main
+          git push https://hayato-122:$HF_TOKEN@huggingface.co/spaces/hayato-122/UOchecker HEAD:main
