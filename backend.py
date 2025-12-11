@@ -9,9 +9,16 @@ import streamlit as st
 if hasattr(st, 'secrets'):
     # Set API keys in environment
     os.environ['ANTHROPIC_API_KEY'] = st.secrets.get('ANTHROPIC_API_KEY', '')
-    
-    # Firebase configuration
-    firebase_config = dict(st.secrets.get('firebase', {}))
+
+    raw_firebase_config = st.secrets.get('firebase', {})
+
+    if isinstance(raw_firebase_config, str):
+        # Hugging Faceの場合: 文字列(JSON)から取得
+        firebase_config = json.loads(raw_firebase_config)
+    else:
+        # Streamlit Cloudの場合: tomlから取得
+        firebase_config = dict(raw_firebase_config)
+
     if firebase_config:
         config_path = 'firebase_config_temp.json'
         with open(config_path, 'w') as f:
