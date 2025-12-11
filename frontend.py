@@ -121,6 +121,7 @@ st.markdown(
     [data-testid="stHeader"] {
         display: none !important;
     }
+    header {visibility: hidden;}
 
     /* フッター削除 */
     footer {
