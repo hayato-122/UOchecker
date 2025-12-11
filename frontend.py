@@ -66,23 +66,6 @@ def update_address(location_list):
 # streamlitのページ設定
 st.set_page_config(page_title="UOチェッカー", layout="wide")
 
-# 言語設定を "ja" に変更
-components.html("""
-    <script>
-        const doc = window.parent.document;
-
-        /* 言語属性を日本語に設定 */
-        doc.documentElement.lang = 'ja';
-
-        /* Google翻訳を無効化するメタタグを追加 */
-        /* <meta name="google" content="notranslate"> */
-        const meta = doc.createElement('meta');
-        meta.name = "google";
-        meta.content = "notranslate";
-        doc.getElementsByTagName('head')[0].appendChild(meta);
-    </script>
-""", height=0, width=0)
-
 # webサイト初回起動時の初期設定
 if "center" not in st.session_state:  # マップ表示の中央の初期設定
     st.session_state.center = [34.694659, 135.194954]  # 三ノ宮駅
