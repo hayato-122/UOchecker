@@ -116,17 +116,43 @@ st.markdown(
     * {
         scrollbar-width: none;
     }
-
-    /* ヘッダー削除 */
-    [data-testid="stHeader"] {
+    
+    /* ヘッダーを非表示 */
+    header[data-testid="stHeader"] {
         display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
     }
-    header {visibility: hidden;}
+
+    /* 右上のツールバーを非表示 */
+    div[data-testid="stToolbar"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    /* 上部の色付きラインを非表示 */
+    div[data-testid="stDecoration"] {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+    }
+
+    /* "Running" や "Stop" を非表示 */
+    div[data-testid="stStatusWidget"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
 
     /* フッター削除 */
     footer {
+        display: none !important;
         visibility: hidden !important;
         height: 0 !important;
+    }
+
+    /* メインコンテンツの位置調整 */
+    .block-container {
+        padding-top: 0rem !important;
     }
 
     /* 余白削除とフルワイド化 */
