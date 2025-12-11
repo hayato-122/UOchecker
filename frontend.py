@@ -353,7 +353,7 @@ with col_main_left:
             <div style="text-align: center; margin-top: 0rem; margin-bottom: 2rem;">
                 <img src="data:image/gif;base64,{title_logo_base64}" style="width: 9.375rem;pointer-events: none; -webkit-user-drag: none;">
                 <div style="margin: 0; color: white; white-space: nowrap; font-size: 3rem; font-weight: bold; line-height: 1.2;">UOチェッカー</div>
-                <p style="color: white; font-size: 1.8rem; font-weight: bold; margin-top: 0.5rem;">漁業権を確認しましょう</p>
+                <p style="color: white; white-space: nowrap; font-size: 1.8rem; font-weight: bold; margin-top: 0.5rem;">漁業権を確認しましょう</p>
             </div>
         """,
         unsafe_allow_html=True,
