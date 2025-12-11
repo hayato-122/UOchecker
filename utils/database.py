@@ -4,18 +4,14 @@
 import firebase_admin
 from firebase_admin import credentials, firestore
 from typing import Dict, Optional
-import streamlit as st
+import os
 
 
 # Firebase初期化
 if not firebase_admin._apps:
     # TODO: サービスアカウントキーのパスを設定
-    # StreamlitのSecretsから読み込む（クラウド用）
-    # ローカル環境の場合jsonファイルをtoml形式にして記載した.streamlit/secrets.toml があれば動く
-    key_dict = dict(st.secrets["firebase"])
-    cred = credentials.Certificate(key_dict)
-
-    firebase_admin.initialize_app(cred)
+    if os.getenv('GOOGLE_APPLICATION_CREDENTIALS'):
+        firebase_admin.initialize_app()
 
 db = firestore.client()
 
