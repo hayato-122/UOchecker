@@ -181,7 +181,7 @@ st.markdown(
     [data-testid="stColumn"]:nth-of-type(1) {
         background: linear-gradient(90deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.35));
         padding: 3rem 2rem;
-        min-height: 102vh;
+        min-height: 100vh;
         margin-top: -2rem;
         user-select: none !important;
         -webkit-user-select: none !important;
@@ -191,7 +191,7 @@ st.markdown(
     [data-testid="stColumn"]:nth-of-type(2) {
         background: rgba(0, 0, 0, 0.76);
         padding: 3rem 2rem;
-        min-height: 102vh;
+        min-height: 100vh;
         margin-top: -2rem;
         user-select: none !important;
         -webkit-user-select: none !important;
