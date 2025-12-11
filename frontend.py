@@ -69,8 +69,17 @@ st.set_page_config(page_title="UOチェッカー", layout="wide")
 # 言語設定を "ja" に変更
 components.html("""
     <script>
-        // 即時実行
-        window.parent.document.documentElement.lang = 'ja';
+        const doc = window.parent.document;
+
+        /* 言語属性を日本語に設定 */
+        doc.documentElement.lang = 'ja';
+
+        /* Google翻訳を無効化するメタタグを追加 */
+        /* <meta name="google" content="notranslate"> */
+        const meta = doc.createElement('meta');
+        meta.name = "google";
+        meta.content = "notranslate";
+        doc.getElementsByTagName('head')[0].appendChild(meta);
     </script>
 """, height=0, width=0)
 
