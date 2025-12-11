@@ -38,11 +38,11 @@ else:
     except Exception:
         pass # secretsが見つからない場合は無視
 
-    if firebase_config:
-        config_path = 'firebase_config_temp.json'
-        with open(config_path, 'w') as f:
-            json.dump(firebase_config, f)
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = config_path
+if firebase_config:
+    config_path = 'firebase_config_temp.json'
+    with open(config_path, 'w') as f:
+        json.dump(firebase_config, f)
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = config_path
 
 # Import utilities after environment setup
 from utils.vision_api import identify_fish_vision
