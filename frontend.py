@@ -174,7 +174,7 @@ st.markdown(
         background: linear-gradient(90deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.35));
         padding: 3rem 2rem;
         min-height: 100vh;
-        margin-top: -2rem;
+        margin-top: -1rem;
         user-select: none !important;
         -webkit-user-select: none !important;
     }
@@ -184,7 +184,7 @@ st.markdown(
         background: rgba(0, 0, 0, 0.76);
         padding: 3rem 2rem;
         min-height: 100vh;
-        margin-top: -2rem;
+        margin-top: -1rem;
         user-select: none !important;
         -webkit-user-select: none !important;
     }
