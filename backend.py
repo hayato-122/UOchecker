@@ -5,44 +5,18 @@ from datetime import datetime
 from typing import Dict, Optional, Tuple
 import streamlit as st
 
-# ANTHROPIC_API_KEY の設定
-# huggingの場合secretで環境変数に入れられている
-if "ANTHROPIC_API_KEY" not in os.environ:
-    # 環境変数にない場合st.secretsから取得
-    try:
-        if hasattr(st, "secrets") and "ANTHROPIC_API_KEY" in st.secrets:
-            os.environ["ANTHROPIC_API_KEY"] = st.secrets["ANTHROPIC_API_KEY"]
-    except Exception:
-        pass # secretsが見つからない場合は無視
-
-# Firebase設定
-firebase_config = {}
-raw_firebase_env = os.getenv("firebase")
-
-if raw_firebase_env:
-    # Docker環境の場合環境変数(文字列)からJSONを取得 huggingのsecret
-    try:
-        firebase_config = json.loads(raw_firebase_env)
-    except json.JSONDecodeError:
-        print("Error: 環境変数 'firebase' の取得に失敗しました")
-else:
-    # ローカル環境: st.secrets(辞書)から取得を試みる
-    try:
-        if hasattr(st, "secrets") and "firebase" in st.secrets:
-            raw_config = st.secrets["firebase"]
-            # 辞書ならそのまま、文字列ならパース
-            if isinstance(raw_config, str):
-                firebase_config = json.loads(raw_config)
-            else:
-                firebase_config = dict(raw_config)
-    except Exception:
-        pass # secretsが見つからない場合は無視
-
-if firebase_config:
-    config_path = 'firebase_config_temp.json'
-    with open(config_path, 'w') as f:
-        json.dump(firebase_config, f)
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = config_path
+# Streamlit secrets configuration - centralized
+if hasattr(st, 'secrets'):
+    # Set API keys in environment
+    os.environ['ANTHROPIC_API_KEY'] = st.secrets.get('ANTHROPIC_API_KEY', '')
+    
+    # Firebase configuration
+    firebase_config = dict(st.secrets.get('firebase', {}))
+    if firebase_config:
+        config_path = 'firebase_config_temp.json'
+        with open(config_path, 'w') as f:
+            json.dump(firebase_config, f)
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = config_path
 
 # Import utilities after environment setup
 from utils.vision_api import identify_fish_vision
