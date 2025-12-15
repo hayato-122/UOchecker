@@ -1,207 +1,192 @@
-# utils/vision_api.py
-# Google Vision API統合
+# utils/claude_api.py
+# Claude API統合
 
-from typing import Optional
-from google.cloud import vision
-from googletrans import Translator
+import os
+import json
+from datetime import datetime
+from anthropic import Anthropic
+from typing import Dict
 
-# グローバル翻訳インスタンス
-translator = Translator()
 
-
-def jp(text: str) -> str:
+def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None) -> Dict:
     """
-    英語テキストを日本語に翻訳
+    Claude APIを使用して魚の完全な情報を生成
     
     Args:
-        text: 翻訳する英語テキスト
+        fish_name: 魚の名前 (英語または日本語)
+        prefecture: 都道府県
+        city: 市区町村 (オプション)
         
     Returns:
-        日本語に翻訳されたテキスト
+        魚の情報を含む辞書
     """
-    try:
-        result = translator.translate(text, dest="ja")
-        return result.text
-    except Exception as e:
-        print(f"翻訳エラー: {e}")
-        return text  # 翻訳失敗時は元のテキストを返す
-
-
-def identify_fish_vision(image_bytes: bytes) -> Optional[str]:
-    """
-    Google Vision APIを使用して画像から魚を識別
     
-    Args:
-        image_bytes: 画像データ (bytes)
-        
-    Returns:
-        識別された魚の名前（日本語）、または None
-    """
+    client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+    
+    location = f"{city}, {prefecture}" if city else prefecture
+    
+    # より詳細で明確なプロンプト
+    prompt = f"""あなたは日本の釣りと海洋生物の専門家です。{location}における"{fish_name}"という魚について、包括的な情報を日本語で提供してください。
+
+必ず以下のJSON構造で、全てのフィールドを埋めて返してください：
+
+{{
+  "fishNameJa": "魚の日本語名（例：マサバ、クロマグロ）",
+  "fishNameEn": "魚の英語名",
+  "scientificName": "学名（ラテン語）",
+  
+  "isLegal": true,
+  "canTakeHome": true,
+  "status": "OK",
+  "legalExplanation": "{prefecture}では、この魚は釣って持ち帰ることができます。ただし、サイズ制限や漁獲量制限を守ってください。",
+  
+  "minSize": 25,
+  "maxSize": null,
+  "dailyLimit": 10,
+  "seasonalBan": ["6月", "7月"],
+  "bannedMonths": [6, 7],
+  
+  "isEdible": true,
+  "edibilityNotes": "新鮮なものは刺身で食べられます。寄生虫の心配がある場合は冷凍または加熱調理してください。",
+  "toxicParts": [],
+  "preparationWarnings": "内臓は早めに取り除いてください。",
+  
+  "description": "この魚は日本近海でよく見られる魚です。青魚の代表格で、脂がのった味わいが特徴です。",
+  "season": ["春", "秋"],
+  "peakSeason": "秋から冬にかけて",
+  "habitat": "沿岸から沖合の表層",
+  "averageSize": "30-40cm",
+  
+  "cookingMethods": ["刺身", "塩焼き", "煮付け", "フライ"],
+  "taste": "脂がのっていて濃厚な味わい。青魚特有の風味があります。",
+  "nutrition": "DHA、EPAなどのオメガ3脂肪酸が豊富。ビタミンB12、ビタミンDも含まれています。",
+  
+  "regulationSource": "{prefecture}の漁業調整規則",
+  "confidence": "high",
+  "sourceUrl": null
+}}
+
+重要な指示：
+1. 全てのテキストは日本語で記述してください（fishNameEn, scientificName以外）
+2. legalExplanationは具体的に「○○県では～」という形で説明してください
+3. statusは以下のルールで決定：
+   - OK: 一般的に釣って持ち帰れる
+   - RESTRICTED: サイズ制限や期間制限がある
+   - PROHIBITED: 禁止されている、または絶滅危惧種
+4. minSizeは0以上の数値、制限がない場合は0
+5. dailyLimitは数値またはnull
+6. seasonalBanは日本語の月名の配列（例：["6月", "7月"]）
+7. bannedMonthsは数値の配列（例：[6, 7]）
+8. cookingMethodsは日本語で最低3つ提供
+9. 不明な情報は推測せず、"不明"または"情報なし"と記載
+10. JSONのみを返し、他の説明文は含めないでください
+
+{prefecture}の具体的な規制情報を考慮して回答してください。"""
+
     try:
-        print("Vision API: クライアント初期化中...")
-        client = vision.ImageAnnotatorClient()
+        print(f"Claude APIに問い合わせ中: {fish_name} @ {location}")
         
-        # 画像オブジェクト作成
-        image = vision.Image(content=image_bytes)
+        message = client.messages.create(
+            model="claude-sonnet-4-5-20250929",
+            max_tokens=4096,
+            temperature=0.2,
+            messages=[{
+                "role": "user",
+                "content": prompt
+            }]
+        )
         
-        # ラベル検出
-        print("Vision API: ラベル検出実行中...")
-        response = client.label_detection(image=image)
-        labels = response.label_annotations
+        # レスポンスを取得
+        response_text = message.content[0].text
+        print(f"Claude応答を受信: {len(response_text)} 文字")
         
-        # Web検出（より具体的な魚種の特定に有効）
-        print("Vision API: Web検出実行中...")
-        web_response = client.web_detection(image=image)
-        web_entities = web_response.web_detection.web_entities
+        # JSONを抽出（マークダウンのコードブロックを除去）
+        response_text = response_text.strip()
+        if response_text.startswith("```json"):
+            response_text = response_text[7:]
+        if response_text.startswith("```"):
+            response_text = response_text[3:]
+        if response_text.endswith("```"):
+            response_text = response_text[:-3]
+        response_text = response_text.strip()
         
-        # デバッグ出力
-        print(f"検出されたラベル: {[l.description for l in labels[:10]]}")
-        print(f"Web エンティティ: {[e.description for e in web_entities[:10] if e.description]}")
+        # JSONをパース
+        try:
+            fish_data = json.loads(response_text)
+            print("JSONパース成功")
+        except json.JSONDecodeError as je:
+            print(f"JSONパースエラー: {je}")
+            print(f"受信したテキスト: {response_text[:500]}...")
+            return create_fallback_response(fish_name, prefecture, f"JSON解析エラー: {str(je)}")
         
-        # 具体的な魚の種類リスト（優先度高）
-        specific_fish = [
-            'mackerel', 'tuna', 'salmon', 'sardine', 'bass', 'sea bass',
-            'bream', 'sea bream', 'flounder', 'cod', 'trout', 'snapper',
-            'yellowtail', 'amberjack', 'grouper', 'halibut', 'rockfish',
-            'herring', 'anchovy', 'bonito', 'skipjack', 'albacore',
-            'swordfish', 'marlin', 'barracuda', 'sea perch', 'red snapper',
-            'black bass', 'striped bass', 'carp', 'catfish', 'pike',
-            'mullet', 'horse mackerel', 'jack mackerel', 'spanish mackerel',
-            'kingfish', 'pompano', 'mahi mahi', 'dolphinfish', 'wahoo',
-            'sheepshead', 'porgy', 'sole', 'plaice', 'turbot', 'monkfish'
-        ]
+        # 必須フィールドの検証
+        required_fields = ['fishNameJa', 'status', 'legalExplanation']
+        missing_fields = [field for field in required_fields if field not in fish_data]
         
-        # 戦略1: Web検出から具体的な魚種を探す（最も精度が高い）
-        print("戦略1: Web検出から具体的な魚種を検索中...")
-        for entity in web_entities:
-            if entity.description and entity.score > 0.5:  # スコアが高いものを優先
-                desc = entity.description.lower()
-                for fish in specific_fish:
-                    if fish in desc:
-                        japanese_name = jp(entity.description)
-                        print(f"具体的な魚種をWeb検出で発見: {entity.description} -> {japanese_name}")
-                        return japanese_name
+        if missing_fields:
+            print(f"必須フィールドが不足: {missing_fields}")
+            # 不足フィールドにデフォルト値を設定
+            if 'fishNameJa' not in fish_data:
+                fish_data['fishNameJa'] = fish_name
+            if 'status' not in fish_data:
+                fish_data['status'] = 'UNKNOWN'
+            if 'legalExplanation' not in fish_data:
+                fish_data['legalExplanation'] = '規制情報を確認できませんでした。'
         
-        # 戦略2: ラベル検出から具体的な魚種を探す
-        print("戦略2: ラベル検出から具体的な魚種を検索中...")
-        for label in labels:
-            if label.score > 0.7:  # 信頼度が高いラベルのみ
-                desc = label.description.lower()
-                for fish in specific_fish:
-                    if fish in desc:
-                        japanese_name = jp(label.description)
-                        print(f"具体的な魚種をラベル検出で発見: {label.description} -> {japanese_name}")
-                        return japanese_name
+        # メタデータを追加
+        fish_data["prefecture"] = prefecture
+        if city:
+            fish_data["city"] = city
+        fish_data["fishIdentified"] = fish_name
+        fish_data["generatedBy"] = "claude"
+        fish_data["generatedAt"] = datetime.utcnow().isoformat()
         
-        # 戦略3: Web検出から一般的な"fish"を含むエンティティを探す
-        print("戦略3: Web検出から一般的な魚を検索中...")
-        for entity in web_entities:
-            if entity.description and entity.score > 0.6:
-                desc = entity.description.lower()
-                if 'fish' in desc and desc != 'fish':  # "fish"単体は除外
-                    japanese_name = jp(entity.description)
-                    print(f"一般的な魚種をWeb検出で発見: {entity.description} -> {japanese_name}")
-                    return japanese_name
-        
-        # 戦略4: ラベル検出から一般的な"fish"を探す（最後の手段）
-        print("戦略4: ラベル検出から一般的な魚を検索中...")
-        for label in labels:
-            if label.score > 0.6:
-                desc = label.description.lower()
-                if 'fish' in desc:
-                    japanese_name = jp(label.description)
-                    print(f"一般的な魚をラベル検出で発見: {label.description} -> {japanese_name}")
-                    return japanese_name
-        
-        # 何も見つからなかった
-        print("Vision API: 魚を識別できませんでした")
-        return None
+        print(f"生成完了: {fish_data.get('fishNameJa', fish_name)}")
+        return fish_data
         
     except Exception as e:
-        print(f"Vision API エラー: {e}")
+        print(f"Claude APIエラー: {e}")
         import traceback
         traceback.print_exc()
-        return None
+        return create_fallback_response(fish_name, prefecture, str(e))
 
 
-def identify_fish_vision_advanced(image_bytes: bytes) -> dict:
+def create_fallback_response(fish_name: str, prefecture: str, error_msg: str = "") -> Dict:
     """
-    より詳細な情報を返す高度な魚識別関数
+    AIが失敗した場合の安全なフォールバック
+    """
+    print(f"フォールバックレスポンスを生成: {error_msg}")
     
-    Args:
-        image_bytes: 画像データ (bytes)
-        
-    Returns:
-        識別結果の詳細情報を含む辞書
-    """
-    try:
-        client = vision.ImageAnnotatorClient()
-        image = vision.Image(content=image_bytes)
-        
-        # 複数の検出を同時実行
-        response = client.annotate_image({
-            'image': image,
-            'features': [
-                {'type_': vision.Feature.Type.LABEL_DETECTION, 'max_results': 20},
-                {'type_': vision.Feature.Type.WEB_DETECTION, 'max_results': 20},
-                {'type_': vision.Feature.Type.OBJECT_LOCALIZATION, 'max_results': 10},
-            ],
-        })
-        
-        result = {
-            'fishName': None,
-            'confidence': 0.0,
-            'labels': [],
-            'webEntities': [],
-            'objects': [],
-            'isFish': False
-        }
-        
-        # ラベル情報
-        for label in response.label_annotations:
-            result['labels'].append({
-                'name': label.description,
-                'score': label.score,
-                'nameJa': jp(label.description)
-            })
-        
-        # Web検出情報
-        if response.web_detection:
-            for entity in response.web_detection.web_entities:
-                if entity.description:
-                    result['webEntities'].append({
-                        'name': entity.description,
-                        'score': entity.score,
-                        'nameJa': jp(entity.description)
-                    })
-        
-        # オブジェクト検出情報
-        for obj in response.localized_object_annotations:
-            result['objects'].append({
-                'name': obj.name,
-                'score': obj.score,
-                'nameJa': jp(obj.name)
-            })
-        
-        # 魚を識別
-        fish_name = identify_fish_vision(image_bytes)
-        if fish_name:
-            result['fishName'] = fish_name
-            result['isFish'] = True
-            # 信頼度を推定（最高スコアのラベルから）
-            if result['labels']:
-                result['confidence'] = max(label['score'] for label in result['labels'])
-        
-        return result
-        
-    except Exception as e:
-        print(f"Vision API 高度検出エラー: {e}")
-        return {
-            'fishName': None,
-            'confidence': 0.0,
-            'labels': [],
-            'webEntities': [],
-            'objects': [],
-            'isFish': False,
-            'error': str(e)
-        }
+    return {
+        "fishNameJa": fish_name,
+        "fishNameEn": fish_name,
+        "scientificName": "不明",
+        "isLegal": False,
+        "canTakeHome": False,
+        "status": "UNKNOWN",
+        "legalExplanation": f"{prefecture}でのこの魚の規制情報を取得できませんでした。現地の漁業協同組合または水産課にお問い合わせください。",
+        "minSize": 0,
+        "maxSize": None,
+        "dailyLimit": None,
+        "seasonalBan": [],
+        "bannedMonths": [],
+        "isEdible": None,
+        "edibilityNotes": "食用可能かどうか不明です。専門家に確認してください。",
+        "toxicParts": [],
+        "preparationWarnings": "不明",
+        "description": "魚の詳細情報を取得できませんでした。",
+        "season": [],
+        "peakSeason": "不明",
+        "habitat": "不明",
+        "averageSize": "不明",
+        "cookingMethods": [],
+        "taste": "不明",
+        "nutrition": "不明",
+        "regulationSource": "取得失敗",
+        "confidence": "low",
+        "sourceUrl": None,
+        "error": True,
+        "errorMessage": error_msg,
+        "prefecture": prefecture,
+        "generatedAt": datetime.utcnow().isoformat()
+    }
