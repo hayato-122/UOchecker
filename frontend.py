@@ -171,7 +171,7 @@ st.markdown(
 
     /* カラム設定 左側（メイン） */
     [data-testid="stColumn"]:nth-of-type(1) {
-        background: linear-gradient(90deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.35));
+        background: linear-gradient(90deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.35));
         padding: 3rem 2rem;
         min-height: 100vh;
         margin-top: -1rem;
@@ -331,13 +331,17 @@ with col_main_left:
     with open("image/title_logo.png", "rb") as title_logo_img:
         title_logo_data = title_logo_img.read()
         title_logo_base64 = base64.b64encode(title_logo_data).decode("utf-8")
+    # サブタイトル画像を読み込んでbase64形式に変換
+    with open("image/title_sub.png", "rb") as title_sub_img:
+        title_sub_data = title_sub_img.read()
+        title_sub_base64 = base64.b64encode(title_sub_data).decode("utf-8")
+
     st.markdown(
         f"""
-            <div style="text-align: center; margin-top: 0rem; margin-bottom: 2rem;">
-                <img src="data:image/gif;base64,{title_logo_base64}" style="width: 9.375rem;pointer-events: none; -webkit-user-drag: none;">
-                <div style="margin: 0; color: white; white-space: nowrap; font-size: 3rem; font-weight: bold; line-height: 1.2;">UOチェッカー</div>
-                <p style="color: white; white-space: nowrap; font-size: 1.8rem; font-weight: bold; margin-top: 0.5rem;">漁業権を確認しましょう</p>
-            </div>
+    <div style="text-align: center; margin-top: 0rem; margin-bottom: 2rem; display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+        <img src="data:image/gif;base64,{title_logo_base64}" style="width: 50rem;pointer-events: none; -webkit-user-drag: none;">
+        <img src="data:image/gif;base64,{title_sub_base64}" style="width: 30rem;pointer-events: none; -webkit-user-drag: none;">
+    </div>
         """,
         unsafe_allow_html=True,
     )
