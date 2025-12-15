@@ -102,7 +102,6 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
 
 {prefecture}の具体的な規制情報を考慮して回答してください。"""
 
-    try:
         print(f"Claude APIに問い合わせ中: {fish_name} @ {location}")
 
         message = client.messages.create(
