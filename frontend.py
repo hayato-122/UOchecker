@@ -66,6 +66,27 @@ def update_address(location_list):
 # streamlitのページ設定
 st.set_page_config(page_title="UOチェッカー", layout="wide")
 
+st.markdown(
+    """
+    <script>
+        var meta = document.createElement('meta');
+        meta.name = "google";
+        meta.content = "notranslate";
+        document.getElementsByTagName('head')[0].appendChild(meta);
+
+        document.body.classList.add('notranslate');
+
+        const observer = new MutationObserver(function() {
+            if (!document.body.classList.contains('notranslate')) {
+                document.body.classList.add('notranslate');
+            }
+        });
+        observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    </script>
+    """,
+    unsafe_allow_html=True
+)
+
 # webサイト初回起動時の初期設定
 if "center" not in st.session_state:  # マップ表示の中央の初期設定
     st.session_state.center = [34.694659, 135.194954]  # 三ノ宮駅
@@ -108,43 +129,16 @@ st.markdown(
     * {
         scrollbar-width: none;
     }
-    
-    /* ヘッダーを非表示 */
-    header[data-testid="stHeader"] {
-        display: none !important;
-        visibility: hidden !important;
-        height: 0 !important;
-    }
 
-    /* 右上のツールバーを非表示 */
-    div[data-testid="stToolbar"] {
+    /* ヘッダー削除 */
+    [data-testid="stHeader"] {
         display: none !important;
-        visibility: hidden !important;
-    }
-
-    /* 上部の色付きラインを非表示 */
-    div[data-testid="stDecoration"] {
-        display: none !important;
-        visibility: hidden !important;
-        height: 0 !important;
-    }
-
-    /* "Running" や "Stop" を非表示 */
-    div[data-testid="stStatusWidget"] {
-        display: none !important;
-        visibility: hidden !important;
     }
 
     /* フッター削除 */
     footer {
-        display: none !important;
         visibility: hidden !important;
         height: 0 !important;
-    }
-
-    /* メインコンテンツの位置調整 */
-    .block-container {
-        padding-top: 0rem !important;
     }
 
     /* 余白削除とフルワイド化 */
@@ -173,8 +167,8 @@ st.markdown(
     [data-testid="stColumn"]:nth-of-type(1) {
         background: linear-gradient(90deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.35));
         padding: 3rem 2rem;
-        min-height: 100vh;
-        margin-top: -1rem;
+        min-height: 102vh;
+        margin-top: -2rem;
         user-select: none !important;
         -webkit-user-select: none !important;
     }
@@ -183,8 +177,8 @@ st.markdown(
     [data-testid="stColumn"]:nth-of-type(2) {
         background: rgba(0, 0, 0, 0.76);
         padding: 3rem 2rem;
-        min-height: 100vh;
-        margin-top: -1rem;
+        min-height: 102vh;
+        margin-top: -2rem;
         user-select: none !important;
         -webkit-user-select: none !important;
     }
@@ -336,7 +330,7 @@ with col_main_left:
             <div style="text-align: center; margin-top: 0rem; margin-bottom: 2rem;">
                 <img src="data:image/gif;base64,{title_logo_base64}" style="width: 9.375rem;pointer-events: none; -webkit-user-drag: none;">
                 <div style="margin: 0; color: white; white-space: nowrap; font-size: 3rem; font-weight: bold; line-height: 1.2;">UOチェッカー</div>
-                <p style="color: white; white-space: nowrap; font-size: 1.8rem; font-weight: bold; margin-top: 0.5rem;">漁業権を確認しましょう</p>
+                <p style="color: white; font-size: 1.8rem; font-weight: bold; margin-top: 0.5rem;">漁業権を確認しましょう</p>
             </div>
         """,
         unsafe_allow_html=True,
