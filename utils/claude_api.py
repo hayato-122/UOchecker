@@ -1,11 +1,23 @@
 # utils/claude_api.py
 # Claude API統合
 
-import os
+import streamlit as st
 import json
 from datetime import datetime
 from anthropic import Anthropic
 from typing import Dict
+
+
+def get_claude_client():
+    """
+    Streamlit secrets から Claude API クライアントを作成
+    """
+    try:
+        api_key = st.secrets["ANTHROPIC_API_KEY"]
+        return Anthropic(api_key=api_key)
+    except Exception as e:
+        print(f"Claude API クライアント作成エラー: {e}")
+        raise
 
 
 def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None) -> Dict:
@@ -21,7 +33,7 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
         魚の情報を含む辞書
     """
     
-    client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+    client = get_claude_client()
     
     location = f"{city}, {prefecture}" if city else prefecture
     
@@ -63,7 +75,15 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
   
   "regulationSource": "{prefecture}の漁業調整規則",
   "confidence": "high",
-  "sourceUrl": null
+  "sourceUrl": null,
+  
+  "fishingRights": {{
+    "requiresLicense": false,
+    "licenseType": "なし",
+    "fishingRightsArea": "自由漁業区域",
+    "restrictions": "特になし",
+    "cooperativeInfo": "地元漁業協同組合に確認することを推奨します"
+  }}
 }}
 
 重要な指示：
@@ -80,8 +100,14 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
 8. cookingMethodsは日本語で最低3つ提供
 9. 不明な情報は推測せず、"不明"または"情報なし"と記載
 10. JSONのみを返し、他の説明文は含めないでください
+11. fishingRights セクションでは以下を含める：
+    - requiresLicense: 遊漁券や漁業権が必要かどうか（true/false）
+    - licenseType: 必要なライセンスの種類（例："遊漁券", "共同漁業権", "なし"）
+    - fishingRightsArea: 漁業権の設定区域（例："共同漁業権第○号区域", "自由漁業区域"）
+    - restrictions: 特定の制限事項（例："漁協組合員のみ", "遊漁券必要"）
+    - cooperativeInfo: 地元漁協の情報や連絡先の推奨
 
-{prefecture}の具体的な規制情報を考慮して回答してください。"""
+{prefecture}の具体的な規制情報と漁業権情報を考慮して回答してください。"""
 
     try:
         print(f"Claude APIに問い合わせ中: {fish_name} @ {location}")
@@ -185,6 +211,13 @@ def create_fallback_response(fish_name: str, prefecture: str, error_msg: str = "
         "regulationSource": "取得失敗",
         "confidence": "low",
         "sourceUrl": None,
+        "fishingRights": {
+            "requiresLicense": None,
+            "licenseType": "不明",
+            "fishingRightsArea": "不明",
+            "restrictions": "不明",
+            "cooperativeInfo": "地元の漁業協同組合にお問い合わせください"
+        },
         "error": True,
         "errorMessage": error_msg,
         "prefecture": prefecture,
