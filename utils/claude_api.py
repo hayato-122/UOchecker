@@ -1,51 +1,44 @@
 # utils/claude_api.py
 # Claude API統合
 
-import os
+import streamlit as st
 import json
 from datetime import datetime
-from typing import Dict, Optional
-import streamlit as st
 from anthropic import Anthropic
+from typing import Dict
 
-# Singleton client instance
-_client = None
 
-def get_anthropic_client() -> Anthropic:
-    """Get or create Anthropic client singleton"""
-    global _client
-    if _client is None:
-        api_key = os.getenv('ANTHROPIC_API_KEY')
-        if not api_key and hasattr(st, 'secrets'):
-            api_key = st.secrets.get("ANTHROPIC_API_KEY")
-
-        if not api_key:
-            raise ValueError("ANTHROPIC_API_KEY が設定されていません")
-
-        _client = Anthropic(api_key=api_key)
-
-    return _client
+def get_claude_client():
+    """
+    Streamlit secrets から Claude API クライアントを作成
+    """
+    try:
+        api_key = st.secrets["ANTHROPIC_API_KEY"]
+        return Anthropic(api_key=api_key)
+    except Exception as e:
+        print(f"Claude API クライアント作成エラー: {e}")
+        raise
 
 
 def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None) -> Dict:
     """
     Claude APIを使用して魚の完全な情報を生成
-    
+
     Args:
         fish_name: 魚の名前 (英語または日本語)
         prefecture: 都道府県
         city: 市区町村 (オプション)
-        
+
     Returns:
         魚の情報を含む辞書
     """
-    
-    try:
-        client = get_anthropic_client()
 
-        location = f"{city}, {prefecture}" if city else prefecture
+    client = get_claude_client()
 
-        prompt = f"""あなたは日本の釣りと海洋生物の専門家です。{location}における"{fish_name}"という魚について、包括的な情報を提供してください。
+    location = f"{city}, {prefecture}" if city else prefecture
+
+    # より詳細で明確なプロンプト
+    prompt = f"""あなたは日本の釣りと海洋生物の専門家です。{location}における"{fish_name}"という魚について、包括的な情報を日本語で提供してください。
 
 必ず以下のJSON構造で、全てのフィールドを埋めて返してください：
 
@@ -53,36 +46,44 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
   "fishNameJa": "魚の日本語名（例：マサバ、クロマグロ）",
   "fishNameEn": "魚の英語名",
   "scientificName": "学名（ラテン語）",
-  
+
   "isLegal": true,
   "canTakeHome": true,
   "status": "OK",
   "legalExplanation": "{prefecture}では、この魚は釣って持ち帰ることができます。ただし、サイズ制限や漁獲量制限を守ってください。",
-  
+
   "minSize": 25,
   "maxSize": null,
   "dailyLimit": 10,
   "seasonalBan": ["6月", "7月"],
   "bannedMonths": [6, 7],
-  
+
   "isEdible": true,
   "edibilityNotes": "新鮮なものは刺身で食べられます。寄生虫の心配がある場合は冷凍または加熱調理してください。",
   "toxicParts": [],
   "preparationWarnings": "内臓は早めに取り除いてください。",
-  
+
   "description": "この魚は日本近海でよく見られる魚です。青魚の代表格で、脂がのった味わいが特徴です。",
   "season": ["春", "秋"],
   "peakSeason": "秋から冬にかけて",
   "habitat": "沿岸から沖合の表層",
   "averageSize": "30-40cm",
-  
+
   "cookingMethods": ["刺身", "塩焼き", "煮付け", "フライ"],
   "taste": "脂がのっていて濃厚な味わい。青魚特有の風味があります。",
   "nutrition": "DHA、EPAなどのオメガ3脂肪酸が豊富。ビタミンB12、ビタミンDも含まれています。",
-  
+
   "regulationSource": "{prefecture}の漁業調整規則",
   "confidence": "high",
-  "sourceUrl": null
+  "sourceUrl": null,
+
+  "fishingRights": {{
+    "requiresLicense": false,
+    "licenseType": "なし",
+    "fishingRightsArea": "自由漁業区域",
+    "restrictions": "特になし",
+    "cooperativeInfo": "地元漁業協同組合に確認することを推奨します"
+  }}
 }}
 
 重要な指示：
@@ -99,9 +100,16 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
 8. cookingMethodsは日本語で最低3つ提供
 9. 不明な情報は推測せず、"不明"または"情報なし"と記載
 10. JSONのみを返し、他の説明文は含めないでください
+11. fishingRights セクションでは以下を含める：
+    - requiresLicense: 遊漁券や漁業権が必要かどうか（true/false）
+    - licenseType: 必要なライセンスの種類（例："遊漁券", "共同漁業権", "なし"）
+    - fishingRightsArea: 漁業権の設定区域（例："共同漁業権第○号区域", "自由漁業区域"）
+    - restrictions: 特定の制限事項（例："漁協組合員のみ", "遊漁券必要"）
+    - cooperativeInfo: 地元漁協の情報や連絡先の推奨
 
-{prefecture}の具体的な規制情報を考慮して回答してください。"""
+{prefecture}の具体的な規制情報と漁業権情報を考慮して回答してください。"""
 
+    try:
         print(f"Claude APIに問い合わせ中: {fish_name} @ {location}")
 
         message = client.messages.create(
@@ -113,7 +121,7 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
                 "content": prompt
             }]
         )
-        
+
         # レスポンスを取得
         response_text = message.content[0].text
         print(f"Claude応答を受信: {len(response_text)} 文字")
@@ -150,7 +158,7 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
                 fish_data['status'] = 'UNKNOWN'
             if 'legalExplanation' not in fish_data:
                 fish_data['legalExplanation'] = '規制情報を確認できませんでした。'
-        
+
         # メタデータを追加
         fish_data["prefecture"] = prefecture
         if city:
@@ -158,10 +166,10 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
         fish_data["fishIdentified"] = fish_name
         fish_data["generatedBy"] = "claude"
         fish_data["generatedAt"] = datetime.utcnow().isoformat()
-        
+
         print(f"生成完了: {fish_data.get('fishNameJa', fish_name)}")
         return fish_data
-        
+
     except Exception as e:
         print(f"Claude APIエラー: {e}")
         import traceback
@@ -203,6 +211,13 @@ def create_fallback_response(fish_name: str, prefecture: str, error_msg: str = "
         "regulationSource": "取得失敗",
         "confidence": "low",
         "sourceUrl": None,
+        "fishingRights": {
+            "requiresLicense": None,
+            "licenseType": "不明",
+            "fishingRightsArea": "不明",
+            "restrictions": "不明",
+            "cooperativeInfo": "地元の漁業協同組合にお問い合わせください"
+        },
         "error": True,
         "errorMessage": error_msg,
         "prefecture": prefecture,

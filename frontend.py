@@ -90,6 +90,11 @@ if "search_error" not in st.session_state:  # 検索エラーメッセージの�
 if "search_history" not in st.session_state:  # 検索履歴リストの初期化
     st.session_state.search_history = []
 
+# 画像を選択画像の読み込み
+with open("image/img_preview_text.png", "rb") as img_preview_text_img:
+    img_preview_text_data = img_preview_text_img.read()
+    img_preview_text_base64 = base64.b64encode(img_preview_text_data).decode("utf-8")
+
 # ページ全体のCSS設定
 st.markdown(
     """
@@ -174,7 +179,7 @@ st.markdown(
         background: linear-gradient(90deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.35));
         padding: 3rem 2rem;
         min-height: 100vh;
-        margin-top: -1rem;
+        margin-top: -2rem;
         user-select: none !important;
         -webkit-user-select: none !important;
     }
@@ -184,7 +189,7 @@ st.markdown(
         background: rgba(0, 0, 0, 0.76);
         padding: 3rem 2rem;
         min-height: 100vh;
-        margin-top: -1rem;
+        margin-top: -2rem;
         user-select: none !important;
         -webkit-user-select: none !important;
     }
@@ -220,6 +225,7 @@ st.markdown(
     /* CSSで画像選択ボタンを作成 */
     [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"] {
         visibility: visible;
+        position: relative;
         width: 30vw;
         height: 11.25rem;
         color: transparent !important;
@@ -255,21 +261,14 @@ st.markdown(
     }
 
     [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"]::before {
-        content: '📷';
-        font-size: 4rem;
-        color: #ccc;
-        display: block;
-        margin-bottom: 0.5rem;
-    }
-
-    [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"]::after {
-        content: '画像を選択';
-        font-size: 1.2rem;
-        color: #fff;
-        display: block;
-        font-weight: bold;
-        text-shadow: none;
-    }
+    content: '📷';
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 4rem;
+    color: #ccc !important;
+}
 
     /* ボタン全体の基本設定 */
     div.stButton > button {
@@ -321,6 +320,29 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+st.markdown(
+    f"""
+    <style>
+    [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"]::after {{
+    content: "";
+    position: absolute;
+    top: 80%;
+    left:55%;
+    transform: translate(-50%, -50%);
+    
+    width: 90%;
+    height: 50%;
+    
+    background-image: url("data:image/png;base64,{img_preview_text_base64}");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    z-index: 2;
+}}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 # メインレイアウト
 col_main_left, col_main_right = st.columns([1, 1], gap="small")  # 1:1の比率に設定
 
@@ -387,7 +409,7 @@ with col_main_right:
             col_search_in, col_search_btn = st.columns([6, 2])
             with col_search_in:  # マップ検索入力欄表示
                 search_map = st.text_input(
-                    "地名検索", placeholder="例：明石市", label_visibility="collapsed"
+                    "地名検索", placeholder="例：西宮駅", label_visibility="collapsed"
                 )
             with col_search_btn:  # 検索ボタン表示
                 if st.button("検索",type="primary") and search_map and search_map != st.session_state.search_map:
@@ -550,6 +572,7 @@ with col_main_right:
                     prefecture = st.session_state.get("current_prefecture", "")
                     city = st.session_state.get("current_city", "")
 
+                    # 漁業権比較処理
                     result = identify_and_check_fish(image_bytes, prefecture, city)
                     st.session_state.result = result
 
@@ -591,15 +614,25 @@ with col_main_right:
     else:  # 結果表示
         result = st.session_state.result
         with st.container():
-            if result.get("success"):
-                st.success("解析完了！")
-                data = result["data"]
-                st.subheader(f"判定結果: {result.get('identifiedFish', '不明')}")
-                st.write(data.get('legal_info', ''))
+            if result.get("isLegal"):
+                result_mark_path = "image/true_mark.png"
             else:
-                st.error(f"エラー: {result.get('error')}")
-                st.write(result.get("message"))
+                result_mark_path = "image/false_mark.png"
 
+
+            # true_mark画像を読み込んでbase64形式に変換
+            with open(result_mark_path, "rb") as result_mark_img:
+                result_mark_data = result_mark_img.read()
+                result_mark_base64 = base64.b64encode(result_mark_data).decode("utf-8")
+
+            st.markdown(
+                f"""
+                <div style="text-align: center; margin-top: 0rem; margin-bottom: 2rem; display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                    <img src="data:image/gif;base64,{result_mark_base64}" style="width: 50rem;pointer-events: none; -webkit-user-drag: none;">
+                </div>
+                    """,
+                unsafe_allow_html=True,
+            )
             if st.button("別の画像を選択", key="reset_result_btn", use_container_width=True,type="primary"):
                 st.session_state.uploaded_file = None
                 st.session_state.result = None
