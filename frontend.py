@@ -8,7 +8,6 @@ from geopy.geocoders import ArcGIS  # マップ情報から緯度経度を取得
 import base64  # 画像の形式を変換
 import requests  # API使用
 import io  # bytes処理用
-import streamlit.components.v1 as components # 日本語設定用
 
 from backend import identify_and_check_fish  # backedの関数呼び出し
 
@@ -521,7 +520,7 @@ with col_main_right:
                             top: 0;
                             left: 0;
                             width: 100vw;
-                            height: 98vh;
+                            height: 100vh;
                             background-color: rgba(0, 0, 0, 0.85);
                             z-index: 999999;
                             display: flex;
@@ -611,29 +610,67 @@ with col_main_right:
                     st.session_state.search_error = None
                     st.rerun()
 
+
+
     else:  # 結果表示
+
         result = st.session_state.result
-        with st.container():
-            if result.get("isLegal"):
-                result_mark_path = "image/true_mark.png"
-            else:
-                result_mark_path = "image/false_mark.png"
 
+        is_legal = result.get("isLegal", False)
 
-            # true_mark画像を読み込んでbase64形式に変換
-            with open(result_mark_path, "rb") as result_mark_img:
-                result_mark_data = result_mark_img.read()
-                result_mark_base64 = base64.b64encode(result_mark_data).decode("utf-8")
+        # 判定結果に基づいたスタイル設定
 
-            st.markdown(
-                f"""
-                <div style="text-align: center; margin-top: 0rem; margin-bottom: 2rem; display: flex; flex-direction: column; align-items: center; gap: 1rem;">
-                    <img src="data:image/gif;base64,{result_mark_base64}" style="width: 50rem;pointer-events: none; -webkit-user-drag: none;">
-                </div>
-                    """,
-                unsafe_allow_html=True,
-            )
-            if st.button("別の画像を選択", key="reset_result_btn", use_container_width=True,type="primary"):
-                st.session_state.uploaded_file = None
-                st.session_state.result = None
-                st.rerun()
+        if is_legal:
+
+            status_color = "#28a745"
+
+            status_bg = "rgba(40, 167, 69, 0.2)"
+
+            status_icon = "✓"
+
+            status_label = "持ち帰りOK"
+
+            sub_text = "この魚は現在のエリア・時期で採捕が許可されています。"
+
+        else:
+
+            status_color = "#dc3545"
+
+            status_bg = "rgba(220, 53, 69, 0.2)"
+
+            status_icon = "×"
+
+            status_label = "持ち帰りNG"
+
+            sub_text = "漁業権により採捕が禁止されています。"
+
+        # HTML文字列を作成（行頭のスペースを消すのがポイントです）
+
+        result_html = f"""
+
+    <div style="background:{status_bg};border:2px solid {status_color};border-radius:1rem;padding:2rem;text-align:center;margin-bottom:2rem;">
+
+    <div style="font-size:5rem;line-height:1;color:{status_color};margin-bottom:1rem;font-weight:bold;text-shadow:0 0 20px {status_color}44;">
+
+    {status_icon}
+
+    </div>
+
+    <h2 style="color:white;margin:0;font-size:2rem;">{status_label}</h2>
+
+    <p style="color:rgba(255,255,255,0.8);margin-top:0.5rem;">{sub_text}</p>
+
+    </div>
+
+    """
+
+        # HTMLとして表示
+
+        st.markdown(result_html, unsafe_allow_html=True)
+
+        if st.button("別の画像を選択", key="reset_result_btn", use_container_width=True, type="primary"):
+            st.session_state.uploaded_file = None
+
+            st.session_state.result = None
+
+            st.rerun()
