@@ -252,6 +252,9 @@ st.markdown(
         [data-testid="stColumn"]:nth-of-type(2) {
             margin-top: 0 !important;
         }
+        
+        iframe[title="streamlit_folium.st_folium"] {
+        height: 250px !important;
     }
 
     [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"]:hover {
