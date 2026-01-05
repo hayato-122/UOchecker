@@ -530,14 +530,14 @@ with col_main_right:
                             flex-direction: column;
                             justify-content: center;
                             align-items: center;
-                            backdrop-filter: blur(0.3rem); /* 5px -> 0.3rem */
+                            backdrop-filter: blur(0.3rem);
                         }}
                         .loader-text {{
                             color: white;
-                            font-size: 1.5rem; /* 24px -> 1.5rem */
+                            font-size: 1.5rem;
                             font-weight: bold;
-                            margin-top: 1.25rem; /* 20px -> 1.25rem */
-                            text-shadow: 0 0 0.625rem rgba(255,255,255,0.5); /* 10px -> 0.625rem */
+                            margin-top: 1.25rem;
+                            text-shadow: 0 0 0.625rem rgba(255,255,255,0.5);
                         }}
                         </style>
                         <div class="loader-overlay">
@@ -574,7 +574,7 @@ with col_main_right:
                     prefecture = st.session_state.get("current_prefecture", "")
                     city = st.session_state.get("current_city", "")
 
-                    # 漁業権比較処理
+                    # 漁業権比較処理 引数の値を緯度　経度に変える必要あり
                     result = identify_and_check_fish(image_bytes, prefecture, city)
                     st.session_state.result = result
 
@@ -629,11 +629,11 @@ with col_main_right:
 
             status_bg = "rgba(40, 167, 69, 0.2)"
 
-            status_icon = "✓"
+            status_icon = "◯"
 
             status_label = "持ち帰りOK"
 
-            sub_text = "この魚は現在のエリア・時期で採捕が許可されています。"
+            sub_text = "この魚は現在の位置での採捕が許可されています。"
 
         else:
 
@@ -659,7 +659,7 @@ with col_main_right:
 
     </div>
 
-    <h2 style="color:white;margin:0;font-size:2rem;">{status_label}</h2>
+    <h2 style="color:white;margin:0;font-size:2rem;text-align: center;">{status_label}</h2>
 
     <p style="color:rgba(255,255,255,0.8);margin-top:0.5rem;">{sub_text}</p>
 
