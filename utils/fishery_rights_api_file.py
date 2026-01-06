@@ -1,4 +1,4 @@
-# utils/fishery_rights_api.py
+# utils/fishery_rights_api_file.py
 
 import requests
 from typing import Dict, Optional, List
