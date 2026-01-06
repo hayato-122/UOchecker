@@ -575,7 +575,7 @@ with col_main_right:
                     city = st.session_state.get("current_city", "")
 
                     # 漁業権比較処理 引数の値を緯度　経度に変える必要あり
-                    result = identify_and_check_fish(image_bytes, prefecture, city)
+                    result = identify_and_check_fish(image_bytes, prefecture, city,st.session_state.marker_location[0],st.session_state.marker_location[1])
                     st.session_state.result = result
 
                 except Exception as e:
