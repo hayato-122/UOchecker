@@ -17,7 +17,7 @@ geolocator = ArcGIS(user_agent="uochecker-app-v1.0", timeout=10)
 
 def update_address(location_list):
     lat, lng = location_list
-    url = " https://geoapi.heartrails.com/api/json?method=searchByGeoLocation"
+    url = "https://geoapi.heartrails.com/api/json?method=searchByGeoLocation"
     params = {
         "method": "searchByGeoLocation",
         "x": lng,
@@ -446,7 +446,13 @@ with col_main_right:
                     prefecture = st.session_state.get("current_prefecture", "")
                     city = st.session_state.get("current_city", "")
 
-                    result = identify_and_check_fish(image_bytes, prefecture, city)
+                    result = identify_and_check_fish(
+                        image_bytes,
+                        prefecture,
+                        city,
+                        st.session_state.marker_location[0],
+                        st.session_state.marker_location[1]
+                    )
                     st.session_state.result = result
 
                 except Exception as e:
