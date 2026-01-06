@@ -1,17 +1,14 @@
 # utils/claude_api.py
-# Claude API統合
 
 import streamlit as st
 import json
 from datetime import datetime
 from anthropic import Anthropic
 from typing import Dict
+from .fishery_rights_api import get_fishery_rights_by_prefecture, get_fishery_rights_by_location
 
 
 def get_claude_client():
-    """
-    Streamlit secrets から Claude API クライアントを作成
-    """
     try:
         api_key = st.secrets["ANTHROPIC_API_KEY"]
         return Anthropic(api_key=api_key)
@@ -20,100 +17,91 @@ def get_claude_client():
         raise
 
 
-def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None) -> Dict:
-    """
-    Claude APIを使用して魚の完全な情報を生成
-    
-    Args:
-        fish_name: 魚の名前 (英語または日本語)
-        prefecture: 都道府県
-        city: 市区町村 (オプション)
-        
-    Returns:
-        魚の情報を含む辞書
-    """
-    
+def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None, latitude: float = None, longitude: float = None) -> Dict:
     client = get_claude_client()
-    
     location = f"{city}, {prefecture}" if city else prefecture
     
-    # より詳細で明確なプロンプト
+    print("📍 共同漁業権APIから情報取得中...")
+    
+    if latitude and longitude:
+        fishery_rights_data = get_fishery_rights_by_location(latitude, longitude)
+    else:
+        fishery_rights_data = get_fishery_rights_by_prefecture(prefecture)
+    
+    fishery_context = f"""
+## 実際の共同漁業権情報(海しるAPIより取得):
+- 漁業権設定: {"あり" if fishery_rights_data['hasFisheryRights'] else "なし"}
+- 遊漁券必要性: {"必要な可能性あり" if fishery_rights_data['requiresLicense'] else "不要"}
+- 区域: {fishery_rights_data['fishingRightsArea']}
+- 制限事項: {fishery_rights_data['restrictions']}
+- 漁協情報: {fishery_rights_data['cooperativeInfo']}
+"""
+    
+    if fishery_rights_data.get('details'):
+        fishery_context += "\n詳細な漁業権情報:\n"
+        for detail in fishery_rights_data['details']:
+            fishery_context += f"  - 漁業権番号: {detail['rightNumber']}, 漁協: {detail['cooperative']}, 対象: {detail['species']}\n"
+    
     prompt = f"""あなたは日本の釣りと海洋生物の専門家です。{location}における"{fish_name}"という魚について、包括的な情報を日本語で提供してください。
 
-必ず以下のJSON構造で、全てのフィールドを埋めて返してください：
+{fishery_context}
+
+上記の実際の共同漁業権情報を必ず考慮して、fishingRightsセクションに正確に反映してください。
+
+必ず以下のJSON構造で、全てのフィールドを埋めて返してください:
 
 {{
-  "fishNameJa": "魚の日本語名（例：マサバ、クロマグロ）",
+  "fishNameJa": "魚の日本語名",
   "fishNameEn": "魚の英語名",
-  "scientificName": "学名（ラテン語）",
-  
+  "scientificName": "学名",
   "isLegal": true,
   "canTakeHome": true,
   "status": "OK",
   "legalExplanation": "{prefecture}では、この魚は釣って持ち帰ることができます。ただし、サイズ制限や漁獲量制限を守ってください。",
-  
   "minSize": 25,
   "maxSize": null,
   "dailyLimit": 10,
   "seasonalBan": ["6月", "7月"],
   "bannedMonths": [6, 7],
-  
   "isEdible": true,
-  "edibilityNotes": "新鮮なものは刺身で食べられます。寄生虫の心配がある場合は冷凍または加熱調理してください。",
+  "edibilityNotes": "新鮮なものは刺身で食べられます。",
   "toxicParts": [],
   "preparationWarnings": "内臓は早めに取り除いてください。",
-  
-  "description": "この魚は日本近海でよく見られる魚です。青魚の代表格で、脂がのった味わいが特徴です。",
+  "description": "この魚は日本近海でよく見られる魚です。",
   "season": ["春", "秋"],
   "peakSeason": "秋から冬にかけて",
   "habitat": "沿岸から沖合の表層",
   "averageSize": "30-40cm",
-  
-  "cookingMethods": ["刺身", "塩焼き", "煮付け", "フライ"],
-  "taste": "脂がのっていて濃厚な味わい。青魚特有の風味があります。",
-  "nutrition": "DHA、EPAなどのオメガ3脂肪酸が豊富。ビタミンB12、ビタミンDも含まれています。",
-  
+  "cookingMethods": ["刺身", "塩焼き", "煮付け"],
+  "taste": "脂がのっていて濃厚な味わい。",
+  "nutrition": "DHA、EPAなどのオメガ3脂肪酸が豊富。",
   "regulationSource": "{prefecture}の漁業調整規則",
   "confidence": "high",
   "sourceUrl": null,
-  
   "fishingRights": {{
-    "requiresLicense": false,
-    "licenseType": "なし",
-    "fishingRightsArea": "自由漁業区域",
-    "restrictions": "特になし",
-    "cooperativeInfo": "地元漁業協同組合に確認することを推奨します"
+    "requiresLicense": {str(fishery_rights_data['requiresLicense']).lower()},
+    "licenseType": "{fishery_rights_data['licenseType']}",
+    "fishingRightsArea": "{fishery_rights_data['fishingRightsArea']}",
+    "restrictions": "{fishery_rights_data['restrictions']}",
+    "cooperativeInfo": "{fishery_rights_data['cooperativeInfo']}"
   }}
 }}
 
-重要な指示：
-1. 全てのテキストは日本語で記述してください（fishNameEn, scientificName以外）
-2. legalExplanationは具体的に「○○県では～」という形で説明してください
-3. statusは以下のルールで決定：
-   - OK: 一般的に釣って持ち帰れる
-   - RESTRICTED: サイズ制限や期間制限がある
-   - PROHIBITED: 禁止されている、または絶滅危惧種
-4. minSizeは0以上の数値、制限がない場合は0
-5. dailyLimitは数値またはnull
-6. seasonalBanは日本語の月名の配列（例：["6月", "7月"]）
-7. bannedMonthsは数値の配列（例：[6, 7]）
-8. cookingMethodsは日本語で最低3つ提供
-9. 不明な情報は推測せず、"不明"または"情報なし"と記載
-10. JSONのみを返し、他の説明文は含めないでください
-11. fishingRights セクションでは以下を含める：
-    - requiresLicense: 遊漁券や漁業権が必要かどうか（true/false）
-    - licenseType: 必要なライセンスの種類（例："遊漁券", "共同漁業権", "なし"）
-    - fishingRightsArea: 漁業権の設定区域（例："共同漁業権第○号区域", "自由漁業区域"）
-    - restrictions: 特定の制限事項（例："漁協組合員のみ", "遊漁券必要"）
-    - cooperativeInfo: 地元漁協の情報や連絡先の推奨
-
-{prefecture}の具体的な規制情報と漁業権情報を考慮して回答してください。"""
+重要な指示:
+1. 全てのテキストは日本語で記述(fishNameEn, scientificName以外)
+2. statusは以下のルールで決定: OK(一般的に釣って持ち帰れる), RESTRICTED(サイズ制限や期間制限), PROHIBITED(禁止または絶滅危惧種)
+3. minSizeは0以上の数値、制限がない場合は0
+4. seasonalBanは日本語の月名の配列
+5. bannedMonthsは数値の配列
+6. 不明な情報は"不明"または"情報なし"と記載
+7. JSONのみを返し、他の説明文は含めない
+8. fishingRightsセクションは上記の実際のAPIデータを必ず使用"""
 
     try:
         print(f"Claude APIに問い合わせ中: {fish_name} @ {location}")
         
         message = client.messages.create(
-            model="claude-sonnet-4-5-20250929",
+            model="claude-sonnet-4-20250514",
             max_tokens=4096,
             temperature=0.2,
             messages=[{
@@ -122,11 +110,9 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
             }]
         )
         
-        # レスポンスを取得
         response_text = message.content[0].text
         print(f"Claude応答を受信: {len(response_text)} 文字")
         
-        # JSONを抽出（マークダウンのコードブロックを除去）
         response_text = response_text.strip()
         if response_text.startswith("```json"):
             response_text = response_text[7:]
@@ -136,7 +122,6 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
             response_text = response_text[:-3]
         response_text = response_text.strip()
         
-        # JSONをパース
         try:
             fish_data = json.loads(response_text)
             print("JSONパース成功")
@@ -145,13 +130,11 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
             print(f"受信したテキスト: {response_text[:500]}...")
             return create_fallback_response(fish_name, prefecture, f"JSON解析エラー: {str(je)}")
         
-        # 必須フィールドの検証
         required_fields = ['fishNameJa', 'status', 'legalExplanation']
         missing_fields = [field for field in required_fields if field not in fish_data]
         
         if missing_fields:
             print(f"必須フィールドが不足: {missing_fields}")
-            # 不足フィールドにデフォルト値を設定
             if 'fishNameJa' not in fish_data:
                 fish_data['fishNameJa'] = fish_name
             if 'status' not in fish_data:
@@ -159,13 +142,29 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
             if 'legalExplanation' not in fish_data:
                 fish_data['legalExplanation'] = '規制情報を確認できませんでした。'
         
-        # メタデータを追加
         fish_data["prefecture"] = prefecture
         if city:
             fish_data["city"] = city
         fish_data["fishIdentified"] = fish_name
         fish_data["generatedBy"] = "claude"
         fish_data["generatedAt"] = datetime.utcnow().isoformat()
+        
+        if 'fishingRights' in fish_data:
+            fish_data['fishingRights'].update({
+                'requiresLicense': fishery_rights_data['requiresLicense'],
+                'licenseType': fishery_rights_data['licenseType'],
+                'fishingRightsArea': fishery_rights_data['fishingRightsArea'],
+                'restrictions': fishery_rights_data['restrictions'],
+                'cooperativeInfo': fishery_rights_data['cooperativeInfo']
+            })
+        else:
+            fish_data['fishingRights'] = {
+                'requiresLicense': fishery_rights_data['requiresLicense'],
+                'licenseType': fishery_rights_data['licenseType'],
+                'fishingRightsArea': fishery_rights_data['fishingRightsArea'],
+                'restrictions': fishery_rights_data['restrictions'],
+                'cooperativeInfo': fishery_rights_data['cooperativeInfo']
+            }
         
         print(f"生成完了: {fish_data.get('fishNameJa', fish_name)}")
         return fish_data
@@ -178,9 +177,6 @@ def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None)
 
 
 def create_fallback_response(fish_name: str, prefecture: str, error_msg: str = "") -> Dict:
-    """
-    AIが失敗した場合の安全なフォールバック
-    """
     print(f"フォールバックレスポンスを生成: {error_msg}")
     
     return {
