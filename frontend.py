@@ -619,7 +619,7 @@ with col_main_right:
 
         result = st.session_state.result
 
-        is_legal = result.get("isLegal", False)
+        is_legal = result.get("isLegal")
 
         # 判定結果に基づいたスタイル設定
 
