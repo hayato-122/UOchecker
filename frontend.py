@@ -256,6 +256,7 @@ st.markdown(
         iframe[title="streamlit_folium.st_folium"] {
         height: 250px !important;
     }
+}
 
     [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"]:hover {
         background-color: rgba(255, 255, 255, 0.1) !important;
