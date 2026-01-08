@@ -1,5 +1,6 @@
 # utils/claude_api.py
 
+import os
 import streamlit as st
 import json
 from datetime import datetime
@@ -10,7 +11,19 @@ from .fishery_rights_api import get_fishery_rights_by_prefecture, get_fishery_ri
 
 def get_claude_client():
     try:
-        api_key = st.secrets["ANTHROPIC_API_KEY"]
+        # Try Streamlit secrets first
+        if hasattr(st, 'secrets') and 'ANTHROPIC_API_KEY' in st.secrets:
+            api_key = st.secrets["ANTHROPIC_API_KEY"]
+        # Fallback to environment variable
+        elif 'ANTHROPIC_API_KEY' in os.environ:
+            api_key = os.environ['ANTHROPIC_API_KEY']
+        # Last resort: try local file
+        elif os.path.exists('anthropic_key.txt'):
+            with open('anthropic_key.txt', 'r') as f:
+                api_key = f.read().strip()
+        else:
+            raise Exception("ANTHROPIC_API_KEY not found!")
+        
         return Anthropic(api_key=api_key)
     except Exception as e:
         print(f"Claude API クライアント作成エラー: {e}")
