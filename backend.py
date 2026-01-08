@@ -3,6 +3,8 @@ import os
 import json
 from datetime import datetime
 from typing import Dict, Optional, Tuple
+import firebase_admin
+from firebase_admin import credentials, firestore
 
 # Firebase設定
 local_json_path = 'firebase_config.json'
@@ -28,13 +30,17 @@ if firebase_config:
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = config_path
         print("GOOGLE_APPLICATION_CREDENTIALSを設定しました")
 
+        if not firebase_admin._apps:
+            cred = credentials.Certificate(config_path)
+            firebase_admin.initialize_app(cred)
+            print("firebaseの設定を初期化しました")
+
     # ClaudeAPI用の設定
     if "anthropic" in firebase_config:
         os.environ['ANTHROPIC_API_KEY'] = firebase_config["anthropic"]
         print("ANTHROPIC_API_KEYを設定しました")
 else:
     print("認証情報が見つかりません")
-
 
 from utils.vision_api import identify_fish_vision
 from utils.claude_api import generate_fish_info_claude

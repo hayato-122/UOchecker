@@ -1,19 +1,12 @@
 # utils/database.py
 # Firebase Firestore統合
 
-import firebase_admin
-from firebase_admin import credentials, firestore
+
 from typing import Dict, Optional
 import os
 
 
-# Firebase初期化
-if not firebase_admin._apps:
-    # TODO: サービスアカウントキーのパスを設定
-    if os.getenv('GOOGLE_APPLICATION_CREDENTIALS'):
-        firebase_admin.initialize_app()
 
-db = firestore.client()
 
 
 def create_cache_key(prefecture: str, fish_name: str) -> str:
