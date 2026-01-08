@@ -4,10 +4,10 @@
 
 from typing import Dict, Optional
 import os
+import firebase_admin
+from firebase_admin import credentials, firestore
 
-
-
-
+db = firestore.client()
 
 def create_cache_key(prefecture: str, fish_name: str) -> str:
     """
