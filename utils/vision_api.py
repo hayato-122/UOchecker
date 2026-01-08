@@ -1,30 +1,6 @@
 import os
-import sys
-from pathlib import Path
 from typing import Optional
 from google.cloud import vision
-
-# 修正箇所: importの成否に関わらず、環境変数が未設定ならセットするロジックに変更
-if 'GOOGLE_APPLICATION_CREDENTIALS' not in os.environ:
-    try:
-        from dotenv import load_dotenv
-
-        load_dotenv()
-
-        # プロジェクトルートの判定 (現在のファイルの位置から計算)
-        project_root = Path(__file__).parent.parent
-        credentials_path = project_root / 'firebase_config.json'
-
-        # ファイルの存在確認 (デバッグ用)
-        if not credentials_path.exists():
-            print(f"⚠️ 警告: 認証ファイルが見つかりません: {credentials_path}")
-        else:
-            os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = str(credentials_path)
-            print(f"🔑 認証パスを設定しました: {credentials_path}")
-
-    except Exception as e:
-        print(f"環境設定エラー: {e}")
-
 
 def identify_fish_vision(image_bytes: bytes) -> Optional[str]:
     """
@@ -37,7 +13,15 @@ def identify_fish_vision(image_bytes: bytes) -> Optional[str]:
         魚の名前 (英語) または None
     """
     try:
-        client = vision.ImageAnnotatorClient()
+        creds_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+
+        if creds_path and os.path.exists(creds_path):
+            # 認証ファイルを直接指定してクライアントを作成
+            client = vision.ImageAnnotatorClient.from_service_account_json(creds_path)
+        else:
+            # 万が一パスがない場合はデフォルト（Hugging Face環境など）
+            client = vision.ImageAnnotatorClient()
+
         image = vision.Image(content=image_bytes)
 
         # ラベル検出

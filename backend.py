@@ -3,52 +3,42 @@ import os
 import json
 from datetime import datetime
 from typing import Dict, Optional, Tuple
-import streamlit as st
-
-# ANTHROPIC_API_KEY の設定
-# huggingの場合secretで環境変数に入れられている
-if "ANTHROPIC_API_KEY" not in os.environ:
-    # 環境変数にない場合st.secretsから取得
-    try:
-        if hasattr(st, "secrets") and "ANTHROPIC_API_KEY" in st.secrets:
-            os.environ["ANTHROPIC_API_KEY"] = st.secrets["ANTHROPIC_API_KEY"]
-    except Exception:
-        pass # secretsが見つからない場合は無視
 
 # Firebase設定
-firebase_config = {}
+local_json_path = 'firebase_config.json'
+firebase_config = None
 raw_firebase_env = os.getenv("firebase")
 
-if raw_firebase_env:
+if os.path.exists(local_json_path):
+    with open(local_json_path, "r", encoding="utf-8") as f:
+        firebase_config = json.load(f)
+elif raw_firebase_env:
     # Docker環境の場合環境変数(文字列)からJSONを取得 huggingのsecret
     try:
         firebase_config = json.loads(raw_firebase_env)
     except json.JSONDecodeError:
         print("Error: 環境変数 'firebase' の取得に失敗しました")
-else:
-    # ローカル環境: st.secrets(辞書)から取得を試みる
-    try:
-        if hasattr(st, "secrets") and "firebase" in st.secrets:
-            raw_config = st.secrets["firebase"]
-            # 辞書ならそのまま、文字列ならパース
-            if isinstance(raw_config, str):
-                firebase_config = json.loads(raw_config)
-            else:
-                firebase_config = dict(raw_config)
-    except Exception:
-        pass # secretsが見つからない場合は無視
 
 if firebase_config:
-    config_path = 'firebase_config_temp.json'
-    with open(config_path, 'w') as f:
-        json.dump(firebase_config, f)
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = config_path
+    # GoogleVisionAPI用の設定
+    if "firebase" in firebase_config:
+        config_path = os.path.abspath('firebase_config_temp.json')
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(firebase_config["firebase"], f) # firebaseの中身だけを書き出す
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = config_path
+        print("GOOGLE_APPLICATION_CREDENTIALSを設定しました")
 
-# Import utilities after environment setup
+    # ClaudeAPI用の設定
+    if "anthropic" in firebase_config:
+        os.environ['ANTHROPIC_API_KEY'] = firebase_config["anthropic"]
+        print("ANTHROPIC_API_KEYを設定しました")
+else:
+    print("認証情報が見つかりません")
+
+
 from utils.vision_api import identify_fish_vision
 from utils.claude_api import generate_fish_info_claude
 from utils.database import get_from_cache, save_to_cache, create_cache_key
-
 
 def validate_input(image_bytes: bytes, prefecture: str, city: str = None) -> Tuple[bool, str]:
     if not image_bytes or len(image_bytes) == 0:
