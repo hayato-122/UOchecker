@@ -9,7 +9,7 @@ import base64  # 画像の形式を変換
 import requests  # API使用
 import io  # bytes処理用
 
-from backend import identify_and_analyze_fish  # backedの関数呼び出し
+from backend import identify_and_check_fish  # backedの関数呼び出し
 
 # geolocatorインスタンス作成　update_addressの逆ジオコーディングを実行するため
 geolocator = ArcGIS(user_agent="uochecker-app-v1.0", timeout=10)
@@ -612,7 +612,7 @@ with col_main_right:
                     city = st.session_state.get("current_city", "")
 
                     # 漁業権比較処理 引数の値を緯度　経度に変える必要あり
-                    result = identify_and_analyze_fish(image_bytes, prefecture, city,st.session_state.marker_location[0],st.session_state.marker_location[1])
+                    result = identify_and_check_fish(image_bytes, prefecture, city,st.session_state.marker_location[0],st.session_state.marker_location[1])
                     st.session_state.result = result
 
                 except Exception as e:

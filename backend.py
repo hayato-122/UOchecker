@@ -4,32 +4,44 @@ import json
 import base64
 from datetime import datetime
 from typing import Dict, Tuple
-import streamlit as st
+import firebase_admin
+from firebase_admin import credentials, firestore
 
-if hasattr(st, 'secrets') and st.secrets:
-    os.environ['ANTHROPIC_API_KEY'] = st.secrets.get('ANTHROPIC_API_KEY', '')
-    
-    firebase_config = dict(st.secrets.get('firebase', {}))
-    if firebase_config:
-        config_path = 'firebase_config_temp.json'
-        with open(config_path, 'w') as f:
-            json.dump(firebase_config, f)
+# Firebase設定
+local_json_path = 'firebase_config.json'
+firebase_config = None
+raw_firebase_env = os.getenv("firebase")
+
+if os.path.exists(local_json_path):
+    with open(local_json_path, "r", encoding="utf-8") as f:
+        firebase_config = json.load(f)
+elif raw_firebase_env:
+    # Docker環境の場合環境変数(文字列)からJSONを取得 huggingのsecret
+    try:
+        firebase_config = json.loads(raw_firebase_env)
+    except json.JSONDecodeError:
+        print("Error: 環境変数 'firebase' の取得に失敗しました")
+
+if firebase_config:
+    # GoogleVisionAPI用の設定
+    if "firebase" in firebase_config:
+        config_path = os.path.abspath('firebase_config_temp.json')
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(firebase_config["firebase"], f) # firebaseの中身だけを書き出す
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = config_path
+        print("GOOGLE_APPLICATION_CREDENTIALSを設定しました")
+
+        if not firebase_admin._apps:
+            cred = credentials.Certificate(config_path)
+            firebase_admin.initialize_app(cred)
+            print("firebaseの設定を初期化しました")
+
+    # ClaudeAPI用の設定
+    if "anthropic" in firebase_config:
+        os.environ['ANTHROPIC_API_KEY'] = firebase_config["anthropic"]
+        print("ANTHROPIC_API_KEYを設定しました")
 else:
-    print("ローカル設定ファイルを使用中...")
-    
-    if os.path.exists('firebase_config.json'):
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'firebase_config.json'
-        print("firebase_config.json found")
-    else:
-        print("firebase_config.json not found!")
-    
-    if os.path.exists('anthropic_key.txt'):
-        with open('anthropic_key.txt', 'r') as f:
-            os.environ['ANTHROPIC_API_KEY'] = f.read().strip()
-        print("anthropic_key.txt found")
-    elif 'ANTHROPIC_API_KEY' not in os.environ:
-        print("ANTHROPIC_API_KEY not set!")
+    print("認証情報が見つかりません")
 
 from utils.claude_api import identify_and_analyze_fish
 from utils.database import get_from_cache, save_to_cache, create_cache_key
