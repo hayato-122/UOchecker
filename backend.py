@@ -1,11 +1,12 @@
 # backend.py
 import os
 import json
+import base64
 from datetime import datetime
-from typing import Dict, Optional, Tuple
+from typing import Dict, Tuple
 import streamlit as st
 
-if hasattr(st, 'secrets'):
+if hasattr(st, 'secrets') and st.secrets:
     os.environ['ANTHROPIC_API_KEY'] = st.secrets.get('ANTHROPIC_API_KEY', '')
     
     firebase_config = dict(st.secrets.get('firebase', {}))
@@ -14,13 +15,27 @@ if hasattr(st, 'secrets'):
         with open(config_path, 'w') as f:
             json.dump(firebase_config, f)
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = config_path
+else:
+    print("📁 ローカル設定ファイルを使用中...")
+    
+    if os.path.exists('firebase_config.json'):
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'firebase_config.json'
+        print("✅ firebase_config.json found")
+    else:
+        print("❌ firebase_config.json not found!")
+    
+    if os.path.exists('anthropic_key.txt'):
+        with open('anthropic_key.txt', 'r') as f:
+            os.environ['ANTHROPIC_API_KEY'] = f.read().strip()
+        print("✅ anthropic_key.txt found")
+    elif 'ANTHROPIC_API_KEY' not in os.environ:
+        print("⚠️ ANTHROPIC_API_KEY not set!")
 
-from utils.vision_api import identify_fish_vision
-from utils.claude_api import generate_fish_info_claude
+from utils.claude_api import identify_and_analyze_fish
 from utils.database import get_from_cache, save_to_cache, create_cache_key
 
 
-def validate_input(image_bytes: bytes, prefecture: str, city: str = None) -> Tuple[bool, str]:
+def validate_input(image_bytes: bytes, prefecture: str) -> Tuple[bool, str]:
     if not image_bytes or len(image_bytes) == 0:
         return False, "画像データが空です"
     
@@ -42,7 +57,7 @@ def clean_prefecture_name(prefecture: str) -> str:
 
 def identify_and_check_fish(image_bytes: bytes, prefecture: str, city: str = None, latitude: float = None, longitude: float = None) -> Dict:
     try:
-        is_valid, error_msg = validate_input(image_bytes, prefecture, city)
+        is_valid, error_msg = validate_input(image_bytes, prefecture)
         if not is_valid:
             return {
                 "success": False,
@@ -60,28 +75,31 @@ def identify_and_check_fish(image_bytes: bytes, prefecture: str, city: str = Non
             print(f"🌐 座標: ({latitude}, {longitude})")
         print(f"{'='*60}\n")
         
-        print("📸 ステップ1: Vision API呼び出し中...")
-        fish_name = identify_fish_vision(image_bytes)
+        print("🤖 Claude APIで魚を識別・分析中...")
         
-        if not fish_name:
-            return {
-                "success": False,
-                "error": "魚を特定できませんでした",
-                "message": "画像が不鮮明か、魚が写っていない可能性があります。\n別の角度から撮影してみてください。",
-                "suggestions": [
-                    "魚全体がはっきり写っている画像を使用してください",
-                    "明るい場所で撮影してください",
-                    "魚に近づいて撮影してください"
-                ]
-            }
+        image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+        
+        result = identify_and_analyze_fish(
+            image_base64=image_base64,
+            prefecture=prefecture,
+            city=city,
+            latitude=latitude,
+            longitude=longitude
+        )
+        
+        if not result.get('success'):
+            return result
+        
+        fish_name = result.get('fishNameJa', '不明')
+        fish_data = result.get('data', {})
         
         print(f"✅ 識別結果: {fish_name}\n")
         
-        print("🔍 ステップ2: データベース確認中...")
+        print("🔍 データベース確認中...")
         cache_key = create_cache_key(prefecture, fish_name)
         cached_data = get_from_cache(cache_key)
         
-        if cached_data:
+        if cached_data and not result.get('fromImage'):
             print("⚡ キャッシュHIT! キャッシュデータを返します\n")
             return {
                 "success": True,
@@ -97,31 +115,15 @@ def identify_and_check_fish(image_bytes: bytes, prefecture: str, city: str = Non
                 "timestamp": datetime.utcnow().isoformat()
             }
         
-        print("キャッシュに見つかりませんでした\n")
-        
-        print("ステップ3: Claude APIで生成中...")
-        fish_info = generate_fish_info_claude(fish_name, prefecture, city, latitude, longitude)
-        
-        if not fish_info or fish_info.get('error'):
-            return {
-                "success": False,
-                "error": "情報生成エラー",
-                "message": "魚の情報を生成できませんでした。もう一度お試しください。",
-                "identifiedFish": fish_name
-            }
-        
-        print("\nステップ4: データベースに保存中...")
-        save_success = save_to_cache(cache_key, fish_info)
-        
-        if not save_success:
-            print("データベース保存に失敗しましたが、結果は返します")
+        print("データベースに保存中...")
+        save_to_cache(cache_key, fish_data)
         
         print(f"\n✅ 完了!\n{'='*60}\n")
         
         return {
             "success": True,
             "fromCache": False,
-            "data": fish_info,
+            "data": fish_data,
             "identifiedFish": fish_name,
             "location": {
                 "prefecture": prefecture,
