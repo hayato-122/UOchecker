@@ -245,9 +245,11 @@ st.markdown(
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        margin-top: 1vw;
+        margin-bottom: auto;
         margin-left: auto;
         margin-right: auto;
-        transform: translateX(-3vw);
+        transform: translateX(-2vw);
         transition: 0.3s;
     }
 
@@ -262,7 +264,7 @@ st.markdown(
     @media (max-width: 600px) {
         [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"] {
             width: 80vw;
-            margin-left: -2%;
+            margin-left: auto;
             margin-right: auto;
         }
 
@@ -669,7 +671,7 @@ with col_main_right:
 
             status_label = "持ち帰りOK"
 
-            sub_text = "この魚は現在の位置での採捕が許可されています。"
+            sub_text = "この魚は現在の位置で採捕が許可されています。"
 
         else:
 
@@ -687,7 +689,7 @@ with col_main_right:
 
         result_html = f"""
 
-    <div style="background:{status_bg};border:2px solid {status_color};border-radius:1rem;padding:2rem;text-align:center;margin-bottom:2rem;">
+    <div style="background:{status_bg};border:2px solid {status_color};border-radius:1rem;padding:0.5rem;text-align:center;margin-bottom:2rem;">
 
     <div style="font-size:5rem;line-height:1;color:{status_color};margin-bottom:1rem;font-weight:bold;text-shadow:0 0 20px {status_color}44;">
 
@@ -697,7 +699,7 @@ with col_main_right:
 
     <p style="color:white;margin:0;font-size:2rem;text-align: center;font-weight: bold;">{status_label}</p>
 
-    <p style="color:rgba(255,255,255,0.8);margin-top:0.5rem;">{sub_text}</p>
+    <p style="color:rgba(255,255,255,0.8);margin-top:0.5rem;text-align:center;">{sub_text}</p>
 
     </div>
 
