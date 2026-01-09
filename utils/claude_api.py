@@ -5,21 +5,11 @@ import json
 from datetime import datetime
 from anthropic import Anthropic
 from typing import Dict
-from utils.fishery_rights_api_file import get_fishery_rights_by_prefecture, get_fishery_rights_by_location
-
-
-def get_claude_client():
-    try:
-        api_key = st.secrets["ANTHROPIC_API_KEY"]
-        return Anthropic(api_key=api_key)
-    except Exception as e:
-        print(f"Claude API クライアント作成エラー: {e}")
-        raise
-
+from utils.fishery_rights_api import get_fishery_rights_by_prefecture, get_fishery_rights_by_location
 
 def generate_fish_info_claude(fish_name: str, prefecture: str, city: str = None, latitude: float = None,
                               longitude: float = None) -> Dict:
-    client = get_claude_client()
+    client = Anthropic()
     location = f"{city}, {prefecture}" if city else prefecture
 
     print("📍 共同漁業権APIから情報取得中...")

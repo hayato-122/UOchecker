@@ -3,14 +3,13 @@
 import streamlit as st  # GUI作成、サーバー作成
 from PIL import Image, ImageOps  # 画像の取り扱い
 import folium  # mapデータ
-from pandas.core.config_init import register_plotting_backend_cb
 from streamlit_folium import st_folium  # map表示
 from geopy.geocoders import ArcGIS  # マップ情報から緯度経度を取得
 import base64  # 画像の形式を変換
 import requests  # API使用
 import io  # bytes処理用
 
-from backend import identify_and_check_fish  # backedの関数呼び出し
+from backend import identify_and_analyze_fish  # backedの関数呼び出し
 
 # geolocatorインスタンス作成　update_addressの逆ジオコーディングを実行するため
 geolocator = ArcGIS(user_agent="uochecker-app-v1.0", timeout=10)
@@ -249,7 +248,7 @@ st.markdown(
         margin-bottom: auto;
         margin-left: auto;
         margin-right: auto;
-        transform: translateX(-2vw);
+        transform: translateX(-3.8vw);
         transition: 0.3s;
     }
 
@@ -264,7 +263,7 @@ st.markdown(
     @media (max-width: 600px) {
         [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"] {
             width: 80vw;
-            margin-left: auto;
+            margin-left: auto%;
             margin-right: auto;
         }
 
@@ -613,7 +612,7 @@ with col_main_right:
                     city = st.session_state.get("current_city", "")
 
                     # 漁業権比較処理 引数の値を緯度　経度に変える必要あり
-                    result = identify_and_check_fish(image_bytes, prefecture, city,st.session_state.marker_location[0],st.session_state.marker_location[1])
+                    result = identify_and_analyze_fish(image_bytes, prefecture, city,st.session_state.marker_location[0],st.session_state.marker_location[1])
                     st.session_state.result = result
 
                 except Exception as e:

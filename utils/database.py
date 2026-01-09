@@ -1,13 +1,8 @@
 # utils/database.py
 # Firebase Firestore統合
 
-
 from typing import Dict, Optional
-import os
-import firebase_admin
 from firebase_admin import credentials, firestore
-
-db = firestore.client()
 
 def create_cache_key(prefecture: str, fish_name: str) -> str:
     """
@@ -23,6 +18,7 @@ def get_from_cache(cache_key: str) -> Optional[Dict]:
     Firestoreキャッシュから魚のデータを取得
     """
     try:
+        db = firestore.client()
         doc_ref = db.collection('fish_regulations_cache').document(cache_key)
         doc = doc_ref.get()
         
@@ -50,6 +46,7 @@ def save_to_cache(cache_key: str, fish_info: Dict) -> bool:
     魚のデータをFirestoreキャッシュに保存
     """
     try:
+        db = firestore.client()
         doc_ref = db.collection('fish_regulations_cache').document(cache_key)
         
         fish_info['id'] = cache_key

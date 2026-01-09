@@ -1,10 +1,12 @@
 # backend.py
-import os
-import json
-from datetime import datetime
-from typing import Dict, Optional, Tuple
 import firebase_admin
 from firebase_admin import credentials, firestore
+import os
+import json
+from anthropic import Anthropic
+from datetime import datetime
+from typing import Dict, Tuple
+from utils.fishery_rights_api import get_fishery_rights_by_prefecture, get_fishery_rights_by_location
 
 # Firebase設定
 local_json_path = 'firebase_config.json'
@@ -42,131 +44,194 @@ if firebase_config:
 else:
     print("認証情報が見つかりません")
 
-from utils.vision_api import identify_fish_vision
-from utils.claude_api import generate_fish_info_claude
-from utils.database import get_from_cache, save_to_cache, create_cache_key
+def identify_and_analyze_fish(image_base64: str, prefecture: str, city: str = None, latitude: float = None,
+                              longitude: float = None) -> Dict:
+    client = Anthropic()
+    location = f"{city}, {prefecture}" if city else prefecture
 
-def validate_input(image_bytes: bytes, prefecture: str, city: str = None) -> Tuple[bool, str]:
-    if not image_bytes or len(image_bytes) == 0:
-        return False, "画像データが空です"
+    print("📍 共同漁業権APIから情報取得中...")
 
-    if not prefecture or len(prefecture.strip()) == 0:
-        return False, "都道府県が指定されていません"
+    if latitude and longitude:
+        fishery_rights_data = get_fishery_rights_by_location(latitude, longitude)
+    else:
+        fishery_rights_data = get_fishery_rights_by_prefecture(prefecture)
 
-    if len(image_bytes) > 10 * 1024 * 1024:
-        return False, "画像サイズが大きすぎます(10MB以下にしてください)"
+    fishery_context = f"""
+## 実際の共同漁業権情報(海しるAPIより取得):
+- 漁業権設定: {"あり" if fishery_rights_data['hasFisheryRights'] else "なし"}
+- 遊漁券必要性: {"必要な可能性あり" if fishery_rights_data['requiresLicense'] else "不要"}
+- 区域: {fishery_rights_data['fishingRightsArea']}
+- 制限事項: {fishery_rights_data['restrictions']}
+- 漁協情報: {fishery_rights_data['cooperativeInfo']}
+"""
 
-    return True, ""
+    if fishery_rights_data.get('details'):
+        fishery_context += "\n詳細な漁業権情報:\n"
+        for detail in fishery_rights_data['details']:
+            fishery_context += f"  - 漁業権番号: {detail['rightNumber']}, 漁協: {detail['cooperative']}, 対象: {detail['species']}\n"
 
+    prompt = f"""あなたは日本の釣りと海洋生物の専門家です。
 
-def clean_prefecture_name(prefecture: str) -> str:
-    for suffix in ['県', '府', '都', '道']:
-        if prefecture.endswith(suffix) and len(prefecture) > 1:
-            return prefecture[:-1]
-    return prefecture
+この画像に写っている魚を識別し、{location}における法的規制と詳細情報を日本語で提供してください。
 
+{fishery_context}
 
-def identify_and_check_fish(image_bytes: bytes, prefecture: str, city: str = None, latitude: float = None,
-                            longitude: float = None) -> Dict:
+**重要**: 全ての回答は日本語で記述してください（fishNameEn, scientificName以外）。
+
+必ず以下のJSON構造で返してください:
+
+{{
+  "fishNameJa": "魚の日本語名（例：マサバ、クロマグロ、スズキ）",
+  "fishNameEn": "魚の英語名",
+  "scientificName": "学名（ラテン語）",
+  "isLegal": true,
+  "canTakeHome": true,
+  "status": "OK",
+  "legalExplanation": "{prefecture}では、この魚は釣って持ち帰ることができます。ただし、サイズ制限や漁獲量制限を守ってください。",
+  "minSize": 25,
+  "maxSize": null,
+  "dailyLimit": 10,
+  "seasonalBan": ["6月", "7月"],
+  "bannedMonths": [6, 7],
+  "isEdible": true,
+  "edibilityNotes": "新鮮なものは刺身で食べられます。寄生虫の心配がある場合は冷凍または加熱調理してください。",
+  "toxicParts": [],
+  "preparationWarnings": "内臓は早めに取り除いてください。",
+  "description": "この魚は日本近海でよく見られる魚です。",
+  "season": ["春", "秋"],
+  "peakSeason": "秋から冬にかけて",
+  "habitat": "沿岸から沖合の表層",
+  "averageSize": "30-40cm",
+  "cookingMethods": ["刺身", "塩焼き", "煮付け", "フライ"],
+  "taste": "脂がのっていて濃厚な味わい。",
+  "nutrition": "DHA、EPAなどのオメガ3脂肪酸が豊富。",
+  "regulationSource": "{prefecture}の漁業調整規則",
+  "confidence": "high",
+  "sourceUrl": null,
+  "fishingRights": {{
+    "requiresLicense": {str(fishery_rights_data['requiresLicense']).lower()},
+    "licenseType": "{fishery_rights_data['licenseType']}",
+    "fishingRightsArea": "{fishery_rights_data['fishingRightsArea']}",
+    "restrictions": "{fishery_rights_data['restrictions']}",
+    "cooperativeInfo": "{fishery_rights_data['cooperativeInfo']}"
+  }}
+}}
+
+指示:
+1. 画像の魚を正確に識別してfishNameJaに記載
+2. 魚が識別できない場合は明確にエラーを返す
+3. statusの決定: OK（釣って持ち帰れる）、RESTRICTED（制限あり）、PROHIBITED（禁止）
+4. 全ての説明文は日本語で記述
+5. minSizeは0以上、制限なしなら0
+6. 不明な情報は「不明」または「情報なし」
+7. JSONのみを返し、説明文は含めない
+8. fishingRightsは上記の実際のAPIデータを使用"""
+
     try:
-        is_valid, error_msg = validate_input(image_bytes, prefecture, city)
-        if not is_valid:
-            return {
-                "success": False,
-                "error": "入力エラー",
-                "message": error_msg
-            }
+        print(f"Claude APIに画像を送信中: {location}")
 
-        prefecture = clean_prefecture_name(prefecture)
+        message = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=4096,
+            temperature=0.2,
+            messages=[{
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": "image/jpeg",
+                            "data": image_base64
+                        }
+                    },
+                    {
+                        "type": "text",
+                        "text": prompt
+                    }
+                ]
+            }]
+        )
 
-        print(f"\n{'=' * 60}")
-        print(f"🎣 識別開始: {prefecture}")
-        if city:
-            print(f"📍 市区町村: {city}")
-        if latitude and longitude:
-            print(f"🌐 座標: ({latitude}, {longitude})")
-        print(f"{'=' * 60}\n")
+        response_text = message.content[0].text
+        print(f"Claude応答を受信: {len(response_text)} 文字")
 
-        print("📸 ステップ1: Vision API呼び出し中...")
-        fish_name = identify_fish_vision(image_bytes)
+        response_text = response_text.strip()
+        if response_text.startswith("```json"):
+            response_text = response_text[7:]
+        if response_text.startswith("```"):
+            response_text = response_text[3:]
+        if response_text.endswith("```"):
+            response_text = response_text[:-3]
+        response_text = response_text.strip()
 
-        if not fish_name:
+        try:
+            fish_data = json.loads(response_text)
+            print("JSONパース成功")
+        except json.JSONDecodeError as je:
+            print(f"JSONパースエラー: {je}")
             return {
                 "success": False,
                 "error": "魚を特定できませんでした",
-                "message": "画像が不鮮明か、魚が写っていない可能性があります。\n別の角度から撮影してみてください。",
-                "suggestions": [
-                    "魚全体がはっきり写っている画像を使用してください",
-                    "明るい場所で撮影してください",
-                    "魚に近づいて撮影してください"
-                ]
+                "message": "画像が不鮮明か、魚が写っていない可能性があります。\n別の角度から撮影してみてください。"
             }
 
-        print(f"✅ 識別結果: {fish_name}\n")
-
-        print("🔍 ステップ2: データベース確認中...")
-        cache_key = create_cache_key(prefecture, fish_name)
-        cached_data = get_from_cache(cache_key)
-
-        if cached_data:
-            print("⚡ キャッシュHIT! キャッシュデータを返します\n")
-            return {
-                "success": True,
-                "fromCache": True,
-                "data": cached_data,
-                "identifiedFish": fish_name,
-                "location": {
-                    "prefecture": prefecture,
-                    "city": city,
-                    "latitude": latitude,
-                    "longitude": longitude
-                },
-                "timestamp": datetime.utcnow().isoformat()
-            }
-
-        print("キャッシュに見つかりませんでした\n")
-
-        print("ステップ3: Claude APIで生成中...")
-        fish_info = generate_fish_info_claude(fish_name, prefecture, city, latitude, longitude)
-
-        if not fish_info or fish_info.get('error'):
+        if 'fishNameJa' not in fish_data or not fish_data['fishNameJa']:
             return {
                 "success": False,
-                "error": "情報生成エラー",
-                "message": "魚の情報を生成できませんでした。もう一度お試しください。",
-                "identifiedFish": fish_name
+                "error": "魚を特定できませんでした",
+                "message": "画像から魚を識別できませんでした。\nより鮮明な画像をお試しください。"
             }
 
-        print("\nステップ4: データベースに保存中...")
-        save_success = save_to_cache(cache_key, fish_info)
+        required_fields = ['fishNameJa', 'status', 'legalExplanation']
+        for field in required_fields:
+            if field not in fish_data:
+                if field == 'fishNameJa':
+                    fish_data['fishNameJa'] = '不明な魚'
+                elif field == 'status':
+                    fish_data['status'] = 'UNKNOWN'
+                elif field == 'legalExplanation':
+                    fish_data['legalExplanation'] = '規制情報を確認できませんでした。'
 
-        if not save_success:
-            print("データベース保存に失敗しましたが、結果は返します")
+        fish_data["prefecture"] = prefecture
+        if city:
+            fish_data["city"] = city
+        fish_data["generatedBy"] = "claude-vision"
+        fish_data["generatedAt"] = datetime.utcnow().isoformat()
 
-        print(f"\n✅ 完了!\n{'=' * 60}\n")
+        if 'fishingRights' in fish_data:
+            fish_data['fishingRights'].update({
+                'requiresLicense': fishery_rights_data['requiresLicense'],
+                'licenseType': fishery_rights_data['licenseType'],
+                'fishingRightsArea': fishery_rights_data['fishingRightsArea'],
+                'restrictions': fishery_rights_data['restrictions'],
+                'cooperativeInfo': fishery_rights_data['cooperativeInfo']
+            })
+        else:
+            fish_data['fishingRights'] = {
+                'requiresLicense': fishery_rights_data['requiresLicense'],
+                'licenseType': fishery_rights_data['licenseType'],
+                'fishingRightsArea': fishery_rights_data['fishingRightsArea'],
+                'restrictions': fishery_rights_data['restrictions'],
+                'cooperativeInfo': fishery_rights_data['cooperativeInfo']
+            }
+
+        print(f"生成完了: {fish_data.get('fishNameJa', '不明')}")
 
         return {
             "success": True,
-            "fromCache": False,
-            "data": fish_info,
-            "identifiedFish": fish_name,
-            "location": {
-                "prefecture": prefecture,
-                "city": city,
-                "latitude": latitude,
-                "longitude": longitude
-            },
-            "timestamp": datetime.utcnow().isoformat()
+            "fromImage": True,
+            "data": fish_data,
+            "fishNameJa": fish_data.get('fishNameJa', '不明')
         }
 
     except Exception as e:
-        print(f"\n予期せぬエラー発生: {str(e)}\n")
+        print(f"Claude APIエラー: {e}")
         import traceback
         traceback.print_exc()
 
         return {
             "success": False,
             "error": "システムエラー",
-            "message": "処理中にエラーが発生しました。もう一度お試しください。",
-            "debug": str(e) if os.getenv('DEBUG') else None
+            "message": "魚の識別中にエラーが発生しました。もう一度お試しください。"
         }
