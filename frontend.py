@@ -3,6 +3,7 @@
 import streamlit as st  # GUI作成、サーバー作成
 from PIL import Image, ImageOps  # 画像の取り扱い
 import folium  # mapデータ
+from pandas.core.config_init import register_plotting_backend_cb
 from streamlit_folium import st_folium  # map表示
 from geopy.geocoders import ArcGIS  # マップ情報から緯度経度を取得
 import base64  # 画像の形式を変換
@@ -59,6 +60,9 @@ def update_address(location_list):
             return "住所不明"
     except Exception as e:
         print(f"HeartRails Error: {e}")
+        st.session_state.marker_address = "住所取得エラー"
+        st.session_state.current_prefecture = ""
+        st.session_state.current_city = ""
         return None
 
 
@@ -226,18 +230,32 @@ st.markdown(
         visibility: visible;
         position: relative;
         width: 30vw;
-        height: 11.25rem;
+        height: 10rem;
         color: transparent !important;
-        background: transparent !important;
-        border: 0.125rem dashed rgba(255, 255, 255, 0.5);
-        border-radius: 0.94rem;
+        background-color: transparent !important;
+        
+        border: none !important; 
+        background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='15' ry='15' stroke='rgba(255, 255, 255, 0.5)' stroke-width='6' stroke-dasharray='25' stroke-dashoffset='0' stroke-linecap='square'%3e%3canimate attributeName='stroke-dashoffset' from='100' to='0' dur='4s' repeatCount='indefinite' /%3e%3c/rect%3e%3c/svg%3e");
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+
+        border-radius: 1rem;
         font-size: 1.2rem;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        margin-left: -23%;
+        margin-left: auto;
         margin-right: auto;
+        transform: translateX(-3vw);
+        transition: 0.3s;
+    }
+
+    /* ホバー時に色を変える場合 */
+    [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"]:hover {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        /* ホバー時に枠の色をオレンジに */
+        background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='15' ry='15' stroke='%23ff7b00' stroke-width='6' stroke-dasharray='25' stroke-dashoffset='0' stroke-linecap='square'%3e%3canimate attributeName='stroke-dashoffset' from='100' to='0' dur='2s' repeatCount='indefinite' /%3e%3c/rect%3e%3c/svg%3e");
     }
 
     /* 携帯用 */
@@ -372,10 +390,12 @@ with col_main_left:
     )
     # 画像プレビュー表示
     if st.session_state.uploaded_file is None:  # 画像がアップロードされていない場合
-        uploaded_file = st.file_uploader("", type=["png", "jpg", "jpeg"])
-        if uploaded_file is not None:
-            st.session_state.uploaded_file = uploaded_file
-            st.rerun()
+        col_up_left, col_up_center, col_up_right = st.columns([1, 3, 1])
+        with col_up_center:
+            uploaded_file = st.file_uploader("", type=["png", "jpg", "jpeg"])
+            if uploaded_file is not None:
+                st.session_state.uploaded_file = uploaded_file
+                st.rerun()
     else:  # 画像がアップロードされた場合
         try:
             image = Image.open(st.session_state.uploaded_file)  # 画像を読み込み
@@ -400,7 +420,7 @@ with col_main_right:
         st.markdown(
             """
             <div style="padding: 1.5rem; margin-bottom: 3rem; margin-top: -2.5rem; border-bottom: 0.06rem solid rgba(255,255,255,0.3);">
-                <p style="text-align:center; margin:0; font-weight:bold; color: white; ">📍 場所を指定してください</p>
+                <p style="text-align:center; margin:0; font-weight:bold; color: white;font-size:1.5rem; ">📍 場所を指定してください</p>
             </div>
         """,
             unsafe_allow_html=True,
@@ -411,6 +431,21 @@ with col_main_right:
             # 検索機能
             col_search_in, col_search_btn = st.columns([6, 2])
             with col_search_in:  # マップ検索入力欄表示
+                st.markdown(
+                    """
+                    <style>                
+                    div[data-testid="stTextInput"] {
+                        margin-top: -1rem;
+                    }
+                    
+                    div[data-testid="stTextInput"] input {
+                        background-color: 262730;
+                        color: #FFFFFF;
+                    }
+                    </style>
+                    """,
+                    unsafe_allow_html=True
+                )
                 search_map = st.text_input(
                     "地名検索", placeholder="例：西宮駅", label_visibility="collapsed"
                 )
@@ -494,7 +529,7 @@ with col_main_right:
             # 現在選択中の位置の表示
             st.markdown(
                 f"""
-                    <div style="background: rgba(255,255,255,0.1); padding: 0.94rem; border-radius: 0.5rem; margin-top: -0.625rem; text-align: center;"> <span style="font-size: 0.9em; color: white;">現在選択中の位置:</span><br>
+                    <div style="background: rgba(255,255,255,0.1); padding: 0.94rem; border-radius: 0.5rem; margin-top: -0.625rem; margin-bottom: 0.625rem; text-align: center;"> <span style="font-size: 0.9em; color: white;">現在選択中の位置:</span><br>
                         <strong style="color: white; font-size: 1.1em;">{marker_address}</strong>
                     </div>
                 """,
@@ -660,7 +695,7 @@ with col_main_right:
 
     </div>
 
-    <h2 style="color:white;margin:0;font-size:2rem;text-align: center;">{status_label}</h2>
+    <p style="color:white;margin:0;font-size:2rem;text-align: center;font-weight: bold;">{status_label}</p>
 
     <p style="color:rgba(255,255,255,0.8);margin-top:0.5rem;">{sub_text}</p>
 
