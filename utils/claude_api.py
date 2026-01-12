@@ -5,22 +5,47 @@ import json
 from datetime import datetime
 from anthropic import Anthropic
 from typing import Dict
+import streamlit as st
 from .fishery_rights_api import get_fishery_rights_by_prefecture, get_fishery_rights_by_location
+
+
+def get_claude_client():
+    try:
+        if hasattr(st, 'secrets') and 'ANTHROPIC_API_KEY' in st.secrets:
+            api_key = st.secrets["ANTHROPIC_API_KEY"]
+        elif 'ANTHROPIC_API_KEY' in os.environ:
+            api_key = os.environ['ANTHROPIC_API_KEY']
+        elif os.path.exists('anthropic_key.txt'):
+            with open('anthropic_key.txt', 'r') as f:
+                api_key = f.read().strip().split('\n')[0].strip()
+        else:
+            raise Exception("ANTHROPIC_API_KEY not found!")
+        
+        api_key = api_key.strip()
+        
+        if not api_key.startswith('sk-ant-'):
+            raise Exception(f"Invalid API key format: {api_key[:20]}...")
+        
+        return Anthropic(api_key=api_key)
+    except Exception as e:
+        print(f"Claude API クライアント作成エラー: {e}")
+        raise
+
 
 def identify_and_analyze_fish(image_base64: str, prefecture: str, city: str = None, latitude: float = None, longitude: float = None) -> Dict:
     
     if not isinstance(image_base64, str):
-        print(f"❌ エラー: image_base64 は文字列である必要があります。受け取った型: {type(image_base64)}")
+        print(f"エラー: image_base64 は文字列である必要があります。受け取った型: {type(image_base64)}")
         return {
             "success": False,
             "error": "画像データエラー",
             "message": "画像データの形式が正しくありません。"
         }
     
-    client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    client = get_claude_client()
     location = f"{city}, {prefecture}" if city else prefecture
     
-    print("📍 共同漁業権APIから情報取得中...")
+    print("共同漁業権APIから情報取得中...")
     
     if latitude and longitude:
         fishery_rights_data = get_fishery_rights_by_location(latitude, longitude)
