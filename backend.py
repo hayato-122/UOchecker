@@ -4,44 +4,33 @@ import json
 import base64
 from datetime import datetime
 from typing import Dict, Tuple
-import firebase_admin
-from firebase_admin import credentials, firestore
+import streamlit as st
 
-# Firebase設定
-local_json_path = 'firebase_config.json'
-firebase_config = None
-raw_firebase_env = os.getenv("firebase")
-
-if os.path.exists(local_json_path):
-    with open(local_json_path, "r", encoding="utf-8") as f:
-        firebase_config = json.load(f)
-elif raw_firebase_env:
-    # Docker環境の場合環境変数(文字列)からJSONを取得 huggingのsecret
-    try:
-        firebase_config = json.loads(raw_firebase_env)
-    except json.JSONDecodeError:
-        print("Error: 環境変数 'firebase' の取得に失敗しました")
-
-if firebase_config:
-    # GoogleVisionAPI用の設定
-    if "firebase" in firebase_config:
-        config_path = os.path.abspath('firebase_config_temp.json')
-        with open(config_path, 'w', encoding='utf-8') as f:
-            json.dump(firebase_config["firebase"], f) # firebaseの中身だけを書き出す
+if hasattr(st, 'secrets') and st.secrets:
+    os.environ['ANTHROPIC_API_KEY'] = st.secrets.get('ANTHROPIC_API_KEY', '')
+    
+    firebase_config = dict(st.secrets.get('firebase', {}))
+    if firebase_config:
+        config_path = 'firebase_config_temp.json'
+        with open(config_path, 'w') as f:
+            json.dump(firebase_config, f)
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = config_path
-        print("GOOGLE_APPLICATION_CREDENTIALSを設定しました")
-
-        if not firebase_admin._apps:
-            cred = credentials.Certificate(config_path)
-            firebase_admin.initialize_app(cred)
-            print("firebaseの設定を初期化しました")
-
-    # ClaudeAPI用の設定
-    if "anthropic" in firebase_config:
-        os.environ['ANTHROPIC_API_KEY'] = firebase_config["anthropic"]
-        print("ANTHROPIC_API_KEYを設定しました")
 else:
-    print("認証情報が見つかりません")
+    print("ローカル設定ファイルを使用中...")
+    
+    if os.path.exists('firebase_config.json'):
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'firebase_config.json'
+        print("firebase_config.json found")
+    else:
+        print("firebase_config.json not found!")
+    
+    if os.path.exists('anthropic_key.txt'):
+        with open('anthropic_key.txt', 'r') as f:
+            api_key = f.read().strip().split('\n')[0].strip()
+            os.environ['ANTHROPIC_API_KEY'] = api_key
+        print("anthropic_key.txt found")
+    elif 'ANTHROPIC_API_KEY' not in os.environ:
+        print("ANTHROPIC_API_KEY not set!")
 
 from utils.claude_api import identify_and_analyze_fish
 from utils.database import get_from_cache, save_to_cache, create_cache_key
@@ -80,21 +69,20 @@ def identify_and_check_fish(image_bytes: bytes, prefecture: str, city: str = Non
         prefecture = clean_prefecture_name(prefecture)
         
         print(f"\n{'='*60}")
-        print(f"🎣 識別開始: {prefecture}")
+        print(f"識別開始: {prefecture}")
         if city:
-            print(f"📍 市区町村: {city}")
+            print(f"市区町村: {city}")
         if latitude and longitude:
-            print(f"🌐 座標: ({latitude}, {longitude})")
+            print(f"座標: ({latitude}, {longitude})")
         print(f"{'='*60}\n")
         
-        print("🤖 Claude APIで魚を識別・分析中...")
+        print("Claude APIで魚を識別・分析中...")
         
-        # Convert bytes to base64 string
         try:
             image_base64 = base64.b64encode(image_bytes).decode('utf-8')
-            print(f"✅ 画像をbase64に変換しました ({len(image_base64)} 文字)")
+            print(f"画像をbase64に変換しました ({len(image_base64)} 文字)")
         except Exception as e:
-            print(f"❌ Base64変換エラー: {e}")
+            print(f"Base64変換エラー: {e}")
             return {
                 "success": False,
                 "error": "画像変換エラー",
@@ -115,7 +103,7 @@ def identify_and_check_fish(image_bytes: bytes, prefecture: str, city: str = Non
         fish_name = result.get('fishNameJa', '不明')
         fish_data = result.get('data', {})
         
-        print(f"✅ 識別結果: {fish_name}\n")
+        print(f"識別結果: {fish_name}\n")
         
         print("🔍 データベース確認中...")
         cache_key = create_cache_key(prefecture, fish_name)
@@ -140,7 +128,7 @@ def identify_and_check_fish(image_bytes: bytes, prefecture: str, city: str = Non
         print("データベースに保存中...")
         save_to_cache(cache_key, fish_data)
         
-        print(f"\n✅ 完了!\n{'='*60}\n")
+        print(f"\n完了!\n{'='*60}\n")
         
         return {
             "success": True,
