@@ -227,3 +227,4 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
+/anthropic_key.txt

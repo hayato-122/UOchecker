@@ -4,33 +4,38 @@ import json
 import base64
 from datetime import datetime
 from typing import Dict, Tuple
-import streamlit as st
+from pathlib import Path
 
-if hasattr(st, 'secrets') and st.secrets:
-    os.environ['ANTHROPIC_API_KEY'] = st.secrets.get('ANTHROPIC_API_KEY', '')
-    
-    firebase_config = dict(st.secrets.get('firebase', {}))
-    if firebase_config:
-        config_path = 'firebase_config_temp.json'
-        with open(config_path, 'w') as f:
-            json.dump(firebase_config, f)
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = config_path
+# Pathを設定
+firebase_config_path = Path('firebase_config.json')
+anthropic_key_path = Path('anthropic_key.txt')
+firebase_json = os.environ.get('FIREBASE_CONFIG_JSON')
+anthropic_txt = os.environ.get('ANTHROPIC_KEY_TXT')
+
+
+if firebase_json: # huggingfaceでsecretsが設定されている場合
+    with open('firebase_config.json', 'w') as f:
+        f.write(firebase_json)
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'firebase_config.json'
+    print("firebase_configをhuggingfaceから読み込みました。")
+
+elif firebase_config_path.exists(): # ローカルのjsonファイルから設定する場合
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'firebase_config.json'
+    print("firebase_config.jsonが見つかりました。")
 else:
-    print("ローカル設定ファイルを使用中...")
-    
-    if os.path.exists('firebase_config.json'):
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'firebase_config.json'
-        print("firebase_config.json found")
-    else:
-        print("firebase_config.json not found!")
-    
-    if os.path.exists('anthropic_key.txt'):
-        with open('anthropic_key.txt', 'r') as f:
-            api_key = f.read().strip().split('\n')[0].strip()
-            os.environ['ANTHROPIC_API_KEY'] = api_key
-        print("anthropic_key.txt found")
-    elif 'ANTHROPIC_API_KEY' not in os.environ:
-        print("ANTHROPIC_API_KEY not set!")
+    print("firebase_config.jsonが見つかりません。")
+
+if anthropic_txt:
+    os.environ['ANTHROPIC_API_KEY'] = anthropic_txt
+    print("anthropic_keyをhuggingfaceから読み込みました。")
+
+if anthropic_key_path.exists():
+    with open('anthropic_key.txt', 'r') as f:
+        api_key = f.read().strip().split('\n')[0].strip()
+        os.environ['ANTHROPIC_API_KEY'] = api_key
+    print("anthropic_key.txtが見つかりました。")
+elif 'ANTHROPIC_API_KEY' not in os.environ:
+    print("ANTHROPIC_API_KEYが見つかりません")
 
 from utils.claude_api import identify_and_analyze_fish
 from utils.database import get_from_cache, save_to_cache, create_cache_key
