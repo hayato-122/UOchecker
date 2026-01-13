@@ -11,15 +11,10 @@ from .fishery_rights_api import get_fishery_rights_by_prefecture, get_fishery_ri
 
 def get_claude_client():
     try:
-        if hasattr(st, 'secrets') and 'ANTHROPIC_API_KEY' in st.secrets:
-            api_key = st.secrets["ANTHROPIC_API_KEY"]
-        elif 'ANTHROPIC_API_KEY' in os.environ:
-            api_key = os.environ['ANTHROPIC_API_KEY']
-        elif os.path.exists('anthropic_key.txt'):
-            with open('anthropic_key.txt', 'r') as f:
-                api_key = f.read().strip().split('\n')[0].strip()
+        if 'ANTHROPIC_API_KEY' in os.environ:
+            api_key = os.environ.get('ANTHROPIC_API_KEY')
         else:
-            raise Exception("ANTHROPIC_API_KEY not found!")
+            raise Exception("ANTHROPIC_API_KEYが見つかりません。")
         
         api_key = api_key.strip()
         
