@@ -1,5 +1,5 @@
 # frontend.py
-
+# 実行コマンド　streamlit run frontend.py
 import streamlit as st  # GUI作成、サーバー作成
 from PIL import Image, ImageOps  # 画像の取り扱い
 import folium  # mapデータ
@@ -255,11 +255,8 @@ st.markdown(
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        margin-top: 1vw;
-        margin-bottom: auto;
-        margin-left: auto;
-        margin-right: auto;
-        transform: translateX(-3.8vw);
+        margin: 0.5vw auto 0 auto;
+        transform: translateX(-7.5vw);
         transition: 0.3s;
     }
 
@@ -376,6 +373,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 # メインレイアウト
 col_main_left, col_main_right = st.columns([1, 1], gap="small")  # 1:1の比率に設定
 
@@ -404,10 +402,14 @@ with col_main_left:
     if st.session_state.uploaded_file is None:  # 画像がアップロードされていない場合
         col_up_left, col_up_center, col_up_right = st.columns([1, 3, 1])
         with col_up_center:
-            uploaded_file = st.file_uploader("", type=["png", "jpg", "jpeg"])
-            if uploaded_file is not None:
-                st.session_state.uploaded_file = uploaded_file
-                st.rerun()
+            # 画像プレビュー表示
+            if st.session_state.uploaded_file is None:  # 画像がアップロードされていない場合
+                col_up_left, col_up_center, col_up_right = st.columns([1, 3, 1])
+                with col_up_center:
+                    uploaded_file = st.file_uploader("", type=["png", "jpg", "jpeg"])
+                    if uploaded_file is not None:
+                        st.session_state.uploaded_file = uploaded_file
+                        st.rerun()
     else:  # 画像がアップロードされた場合
         try:
             image = Image.open(st.session_state.uploaded_file)  # 画像を読み込み
@@ -670,6 +672,7 @@ with col_main_right:
         result = st.session_state.result
 
         is_legal = result.get("isLegal")
+        print(f"漁業権照会結果：{is_legal}")
 
         # 判定結果に基づいたスタイル設定
 
