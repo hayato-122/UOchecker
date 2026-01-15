@@ -6,15 +6,15 @@ from datetime import datetime
 from anthropic import Anthropic
 from typing import Dict
 import streamlit as st
-from .fishery_rights_api import get_fishery_rights_by_prefecture, get_fishery_rights_by_location
+from .fishery_rights_api import get_fishery_rights_by_location
 
 
 def get_claude_client():
     try:
-        if 'ANTHROPIC_API_KEY' in os.environ:
-            api_key = os.environ.get('ANTHROPIC_API_KEY')
+        if 'ANTHROPIC_API_KEY_TXT' in os.environ:
+            api_key = os.environ.get('ANTHROPIC_API_KEY_TXT')
         else:
-            raise Exception("ANTHROPIC_API_KEYが見つかりません。")
+            raise Exception("ANTHROPIC_API_KEY_TXTが見つかりません。")
         
         api_key = api_key.strip()
         
@@ -41,11 +41,9 @@ def identify_and_analyze_fish(image_base64: str, prefecture: str, city: str = No
     location = f"{city}, {prefecture}" if city else prefecture
     
     print("共同漁業権APIから情報取得中...")
-    
-    if latitude and longitude:
-        fishery_rights_data = get_fishery_rights_by_location(latitude, longitude)
-    else:
-        fishery_rights_data = get_fishery_rights_by_prefecture(prefecture)
+
+    fishery_rights_data = get_fishery_rights_by_location(latitude, longitude)
+
     
     fishery_context = f"""
 ## 実際の共同漁業権情報(海しるAPIより取得):
