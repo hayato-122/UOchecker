@@ -271,8 +271,7 @@ st.markdown(
     @media (max-width: 600px) {
         [data-testid="stFileUploader"] [data-testid="stBaseButton-secondary"] {
             width: 80vw;
-            margin-left: auto%;
-            margin-right: auto;
+            transform: translateX(-3vw);
         }
 
         /* 右カラムのマージン削除 */
