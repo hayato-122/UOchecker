@@ -1,162 +1,104 @@
-# utils/fishery_rights_api.py
-
 import requests
 from typing import Dict, Optional, List
-
+import os
 
 class FisheryRightsAPI:
-    
-    BASE_URL = "https://api.msil.go.jp"
-    API_ENDPOINT = "/msil/v1/commonFisheryRight2024"
-    
+    BASE_URL = "https://api.msil.go.jp/common-fishery-right2024/v2/MapServer/3/query"
+
     def __init__(self):
+        api_key = os.environ.get('OCP_API_KEY_TXT')
         self.session = requests.Session()
         self.session.headers.update({
             'Accept': 'application/json',
-            'User-Agent': 'UOChecker/1.0'
+            'User-Agent': 'UOChecker/1.0',
+            'Ocp-Apim-Subscription-Key': api_key
         })
-    
-    def search_by_location(self, latitude: float, longitude: float, radius: int = 5000) -> Optional[List[Dict]]:
+
+    def search_by_location(self, latitude: float, longitude: float, radius: int = 3000) -> Optional[List[Dict]]:
         try:
+            # distance=経度,緯度,距離
             params = {
-                'lat': latitude,
-                'lon': longitude,
-                'radius': radius
+                'f': 'json',
+                'distance': f"{longitude},{latitude},{radius}",
+                'units': 'esriSRUnit_Meter',
+                'geometry': f"{longitude},{latitude}",
+                'geometryType': 'esriGeometryPoint',
+                'inSR': '4326',
+                'spatialRel': 'esriSpatialRelIntersects',
+                'outFields': '第一種共同漁業権',
+                'where': "第一種共同漁業権 IS NOT NULL AND 第一種共同漁業権 <> ' '",
+                'returnGeometry': 'false'
             }
-            
-            url = f"{self.BASE_URL}{self.API_ENDPOINT}"
-            print(f"共同漁業権API呼び出し: lat={latitude}, lon={longitude}, radius={radius}m")
-            
-            response = self.session.get(url, params=params, timeout=10)
-            
+
+            print(f"共同漁業権API(v2)呼び出し: {longitude}, {latitude}")
+            response = self.session.get(self.BASE_URL, params=params, timeout=10)
+
             if response.status_code == 200:
                 data = response.json()
-                if data and isinstance(data, dict):
-                    features = data.get('features', [])
-                    print(f"✅ 共同漁業権API: {len(features)}件の漁業権を発見")
-                    return features
-                elif isinstance(data, list):
-                    print(f"✅ 共同漁業権API: {len(data)}件の漁業権を発見")
-                    return data
-                else:
-                    print("⚠️ 共同漁業権API: データ形式が不正")
-                    return None
-            elif response.status_code == 404:
-                print("📍 共同漁業権API: この地点には漁業権が設定されていません")
-                return []
+                features = data.get('features', [])
+                print(f"✅ 共同漁業権API: {len(features)}件の漁業権を発見")
+                return features
             else:
-                print(f"⚠️ 共同漁業権API エラー: {response.status_code}")
+                print(f"⚠️ APIエラー: {response.status_code} {response.text}")
                 return None
-                
-        except requests.exceptions.Timeout:
-            print("⚠️ 共同漁業権API: タイムアウト")
-            return None
         except Exception as e:
-            print(f"⚠️ 共同漁業権API エラー: {e}")
+            print(f"⚠️ 例外発生: {e}")
             return None
-    
-    def search_by_prefecture(self, prefecture: str) -> Optional[List[Dict]]:
-        try:
-            clean_pref = prefecture.replace('県', '').replace('府', '').replace('都', '').replace('道', '')
-            
-            params = {
-                'prefecture': clean_pref
-            }
-            
-            url = f"{self.BASE_URL}{self.API_ENDPOINT}"
-            print(f"共同漁業権API呼び出し: prefecture={clean_pref}")
-            
-            response = self.session.get(url, params=params, timeout=10)
-            
-            if response.status_code == 200:
-                data = response.json()
-                if data and isinstance(data, dict):
-                    features = data.get('features', [])
-                    print(f"✅ 共同漁業権API: {prefecture}で{len(features)}件の漁業権を発見")
-                    return features
-                elif isinstance(data, list):
-                    print(f"✅ 共同漁業権API: {prefecture}で{len(data)}件の漁業権を発見")
-                    return data
-                else:
-                    print("⚠️ 共同漁業権API: データ形式が不正")
-                    return None
-            else:
-                print(f"⚠️ 共同漁業権API エラー: {response.status_code}")
-                return None
-                
-        except Exception as e:
-            print(f"⚠️ 共同漁業権API エラー: {e}")
-            return None
-    
+
     def extract_fishery_info(self, fishery_data: List[Dict]) -> Dict:
+        """
+        APIから取得した周辺の漁業権データの最も近い情報から、
+        第一種共同漁業権の保護魚種ををまとめる関数。
+        """
+
+        # 漁業権データが見つけられなかった場合空データを返す
         if not fishery_data:
             return {
                 'hasFisheryRights': False,
-                'requiresLicense': False,
-                'licenseType': 'なし',
-                'fishingRightsArea': '自由漁業区域',
+                'protectedSpecies': [],
                 'restrictions': '特になし',
-                'cooperativeInfo': '地元漁業協同組合に確認することを推奨します',
                 'details': []
             }
-        
-        details = []
-        cooperatives = set()
-        restricted_species = set()
-        
-        for feature in fishery_data:
-            properties = feature.get('properties', {}) if isinstance(feature, dict) else {}
-            
-            right_number = properties.get('rightNumber') or properties.get('免許番号') or properties.get('漁業権番号')
-            cooperative = properties.get('cooperative') or properties.get('漁協名') or properties.get('組合名')
-            
-            if cooperative:
-                cooperatives.add(cooperative)
-            
-            species = properties.get('species') or properties.get('対象魚種') or properties.get('漁業種類')
-            if species:
-                if isinstance(species, str):
-                    restricted_species.add(species)
-                elif isinstance(species, list):
-                    restricted_species.update(species)
-            
-            expiry = properties.get('expiryDate') or properties.get('有効期限')
-            
-            detail = {
-                'rightNumber': right_number or '不明',
-                'cooperative': cooperative or '不明',
-                'species': species or '不明',
-                'expiryDate': expiry or '不明'
-            }
-            details.append(detail)
-        
-        coop_info = '、'.join(cooperatives) if cooperatives else '地元漁業協同組合'
-        
-        restrictions = []
-        if restricted_species:
-            species_list = '、'.join(list(restricted_species)[:5])
-            restrictions.append(f"対象魚種: {species_list}")
-        
-        restrictions.append("遊漁の場合は事前に地元漁協に確認してください")
-        
+
+        closest_feature = fishery_data[0]
+
+        # ArcGIS形式のデータ構造から属性情報を取得
+        attr = closest_feature.get('attributes', {})
+        # 第一種共同漁業権の項目を取得
+        val = attr.get('第一種共同漁業権')
+
+        protected_species_list = []
+        if val and val.strip():
+            # 全角「、」を半角「,」に置換して分割して前後の空白を削除
+            raw_species = val.replace('、', ',').split(',')
+            # 空文字を除去してあいうえお順に並び替える
+            protected_species_list = sorted([s.strip() for s in raw_species if s.strip()])
+
+        details = [{
+            'species': val.strip() if val else "種別不明"
+        }]
+
+        # 漁業権の魚種一覧表示　デバッグ用
+        print(f"発見された保護魚種 ({protected_species_list})")
+
+        if protected_species_list:
+            restrictions = f"最も近い漁業権の対象: {'、'.join(protected_species_list)}"
+        else:
+            restrictions = "最も近い場所に漁業権はありますが、対象種が記載されていません。"
+
         return {
-            'hasFisheryRights': True,
-            'requiresLicense': True,
-            'licenseType': '共同漁業権区域(遊漁券が必要な場合があります)',
-            'fishingRightsArea': f'共同漁業権設定区域({len(fishery_data)}件)',
-            'restrictions': '、'.join(restrictions),
-            'cooperativeInfo': f'{coop_info}に事前確認を推奨',
-            'details': details[:3]
+            # 保護されている魚種が1つ以上あれば「漁業権あり(True)」と判定
+            'hasFisheryRights': len(protected_species_list) > 0,
+            # AI（Claude）に渡すための、最も近い漁業権の魚種一覧
+            'protectedSpecies': protected_species_list,
+            # 画面表示用の日本語テキスト
+            'restrictions': restrictions,
+            # 詳細データ（1件分）
+            'details': details
         }
 
 
 def get_fishery_rights_by_location(latitude: float, longitude: float) -> Dict:
     api = FisheryRightsAPI()
     fishery_data = api.search_by_location(latitude, longitude)
-    return api.extract_fishery_info(fishery_data)
-
-
-def get_fishery_rights_by_prefecture(prefecture: str) -> Dict:
-    api = FisheryRightsAPI()
-    fishery_data = api.search_by_prefecture(prefecture)
     return api.extract_fishery_info(fishery_data)

@@ -228,3 +228,4 @@ venv/
 .DS_Store
 Thumbs.db
 /anthropic_key.txt
+/ocp_api_key.txt
