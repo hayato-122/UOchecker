@@ -496,7 +496,8 @@ with col_main_right:
                     "地名検索", placeholder="例：西宮駅", label_visibility="collapsed"
                 )
             with col_search_btn:  # 検索ボタン表示
-                if st.button("検索",type="primary") and search_map and search_map != st.session_state.search_map:
+                search_clicked = st.button("検索", type="primary")
+                if (search_clicked or search_map) and search_map and search_map != st.session_state.search_map:
                     st.session_state.search_map = search_map
                     st.session_state.search_error = None
                     location = None
