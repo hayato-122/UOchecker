@@ -57,12 +57,13 @@ Return ONLY this JSON format:
 
 {{
   "fishNameJa": "Japanese fish name",
+  "fishNameHira": "Japanese hiragana name",
   "fishNameEn": "English fish name",
   "scientificName": "Scientific name",
   "isEdible": true
 }}
 
-Important: Always provide fishNameJa, fishNameEn, and scientificName."""
+Important: Always provide fishNameJa, fishNameHira,fishNameEn, and scientificName."""
 
     try:
         print(f"Sending to Claude API: {location}")
@@ -111,11 +112,12 @@ Important: Always provide fishNameJa, fishNameEn, and scientificName."""
             }
 
         fish_name_ja = data.get('fishNameJa', '')
+        fish_name_hira = data.get('fishNameHira', '')
         fish_name_en = data.get('fishNameEn', '')
         scientific_name = data.get('scientificName', '')
         is_edible = data.get('isEdible', True)
 
-        if not fish_name_ja:
+        if not fish_name_hira:
             print("No fish name found")
             return {
                 "success": False,
@@ -125,7 +127,9 @@ Important: Always provide fishNameJa, fishNameEn, and scientificName."""
 
         print(f"Identified fish: {fish_name_ja} ({fish_name_en})")
 
-        if has_fishing_rights:
+        is_protected = fish_name_hira in protected_species
+
+        if has_fishing_rights and is_protected:
             print(f"ILLEGAL: Fishing rights exist in this area")
             return {
                 "success": False,
