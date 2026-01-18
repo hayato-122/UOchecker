@@ -65,7 +65,7 @@ def update_address(location_list):
         st.session_state.current_city = ""
         return None
 
-@st.cache_data # 動画をキャッシュ化
+@st.cache_resource# 動画をキャッシュ化
 def get_base64_video(path):
     with open(path, "rb") as f:
         data = f.read()
@@ -107,6 +107,39 @@ with open("image/img_preview_text.png", "rb") as img_preview_text_img:
 
 # ロード画面用の事前読み込み
 wave_load_base64 = get_base64_video("image/wave_load.mp4")
+
+wave_load_html = f"""
+                    <style>
+                    .loader-overlay {{
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100vw;
+                        height: 100vh;
+                        background-color: rgba(0, 0, 0, 0.85);
+                        z-index: 999999;
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        backdrop-filter: blur(0.3rem);
+                    }}
+                    .loader-text {{
+                        color: white;
+                        font-size: 1.5rem;
+                        font-weight: bold;
+                        margin-top: 1.25rem;
+                        text-shadow: 0 0 0.625rem rgba(255,255,255,0.5);
+                    }}
+                    </style>
+                    <div class="loader-overlay">
+                        <video autoplay loop muted playsinline style="width: 9.375rem; height: auto;">
+                            <source src="data:video/mp4;base64,{wave_load_base64}" type="video/mp4">
+                            お使いのブラウザは動画タグをサポートしていません。
+                        </video>
+                        <div class="loader-text">魚を識別中...</div>
+                    </div>
+                    """
 
 # ページ全体のCSS設定
 st.markdown(
@@ -563,40 +596,6 @@ with col_main_right:
                 st.rerun()
 
         if st.session_state.run_process:
-            # ロード画面のHTML
-            wave_load_html = f"""
-                    <style>
-                    .loader-overlay {{
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        width: 100vw;
-                        height: 100vh;
-                        background-color: rgba(0, 0, 0, 0.85);
-                        z-index: 999999;
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: center;
-                        align-items: center;
-                        backdrop-filter: blur(0.3rem);
-                    }}
-                    .loader-text {{
-                        color: white;
-                        font-size: 1.5rem;
-                        font-weight: bold;
-                        margin-top: 1.25rem;
-                        text-shadow: 0 0 0.625rem rgba(255,255,255,0.5);
-                    }}
-                    </style>
-                    <div class="loader-overlay">
-                        <video autoplay loop muted playsinline style="width: 9.375rem; height: auto;">
-                            <source src="data:video/mp4;base64,{wave_load_base64}" type="video/mp4">
-                            お使いのブラウザは動画タグをサポートしていません。
-                        </video>
-                        <div class="loader-text">魚を識別中...</div>
-                    </div>
-                    """
-
             # ローディング画面を表示
             loading_placeholder = st.empty()
             loading_placeholder.markdown(wave_load_html, unsafe_allow_html=True)
