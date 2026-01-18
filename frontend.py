@@ -727,8 +727,8 @@ with col_main_right:
         if result.get("fishNameJa"):
             fish_info_html = f"""
             <div style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
-                <h3 style="color: white; margin: 0 0 0.5rem 0; text-align: center;">{result.get('fishNameJa')}</h3>
-                <p style="color: rgba(255,255,255,0.8); margin: 0; text-align: center; font-size: 1.1rem;">{result.get('fishNameEn', '')}</p>
+                <p style="color: white; margin: 0 0 0.5rem 0; text-align: center;font-size: 2rem;">{result.get('fishNameJa')}</p>
+                <p style="color: rgba(255,255,255,0.8); margin: 0; text-align: center; font-size: 1.1rem;">{result.get('fishNameEn')}</p>
                 <p style="color: rgba(255,255,255,0.6); margin: 0.5rem 0 0 0; text-align: center; font-style: italic;">学名: {result.get('scientificName', '不明')}</p>
             </div>
             """
@@ -744,16 +744,15 @@ with col_main_right:
             """
             st.markdown(gyogyoken_html, unsafe_allow_html=True)
 
-        # Display edibility
-        if result.get("isEdible") is not None:
-            edible_text = "食用可能" if result.get("isEdible") else "食用不可"
-            edible_color = "#28a745" if result.get("isEdible") else "#dc3545"
-            edible_html = f"""
-            <div style="background: rgba(255,255,255,0.05); padding: 0.8rem; border-radius: 0.5rem; margin-bottom: 1.5rem; text-align: center;">
-                <p style="color: {edible_color}; margin: 0; font-weight: bold;">{edible_text}</p>
-            </div>
-            """
-            st.markdown(edible_html, unsafe_allow_html=True)
+        # # Display edibility
+        # if result.get("isEdible") is not None:
+        #     edible_color = "#28a745" if result.get("isEdible") else "#dc3545"
+        #     edible_html = f"""
+        #     <div style="background: rgba(255,255,255,0.05); padding: 0.8rem; border-radius: 0.5rem; margin-bottom: 1.5rem; text-align: center;">
+        #         <p style="color: {edible_color}; margin: 0; font-weight: bold;">{edible_text}</p>
+        #     </div>
+        #     """
+        #     st.markdown(edible_html, unsafe_allow_html=True)
 
 
         if st.button("別の画像を選択", key="reset_result_btn", use_container_width=True, type="primary"):
