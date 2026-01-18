@@ -11,14 +11,14 @@ def get_claude_client():
     try:
         api_key = None
 
-        if 'ANTHROPIC_API_KEY' in os.environ:
-            api_key = os.environ['ANTHROPIC_API_KEY']
+        if 'ANTHROPIC_API_KEY_TXT' in os.environ:
+            api_key = os.environ['ANTHROPIC_API_KEY_TXT']
         elif os.path.exists('anthropic_key.txt'):
             with open('anthropic_key.txt', 'r', encoding='utf-8') as f:
                 api_key = f.read().strip().split('\n')[0].strip()
 
         if not api_key:
-            raise Exception("ANTHROPIC_API_KEY not found!")
+            raise Exception("ANTHROPIC_API_KEY_TXT not found!")
 
         if not api_key.startswith('sk-ant-'):
             raise Exception(f"Invalid API key format: {api_key[:15]}...")
