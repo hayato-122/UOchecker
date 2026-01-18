@@ -17,14 +17,15 @@ class FisheryRightsAPI:
     def search_by_location(self, latitude: float, longitude: float, radius: int = 3000) -> Optional[List[Dict]]:
         try:
             # distance=経度,緯度,距離
+
             params = {
                 'f': 'json',
-                'distance': f"{longitude},{latitude},{radius}",
-                'units': 'esriSRUnit_Meter',
-                'geometry': f"{longitude},{latitude}",
+                'geometry': f"{longitude},{latitude}",  # 中心点
                 'geometryType': 'esriGeometryPoint',
                 'inSR': '4326',
                 'spatialRel': 'esriSpatialRelIntersects',
+                'distance': str(radius),
+                'units': 'esriSRUnit_Meter',
                 'outFields': '第一種共同漁業権',
                 'where': "第一種共同漁業権 IS NOT NULL AND 第一種共同漁業権 <> ' '",
                 'returnGeometry': 'false'
@@ -82,7 +83,7 @@ class FisheryRightsAPI:
         print(f"発見された保護魚種 ({protected_species_list})")
 
         if protected_species_list:
-            restrictions = f"最も近い漁業権の対象: {'、'.join(protected_species_list)}"
+            restrictions = f"{'、'.join(protected_species_list)}"
         else:
             restrictions = "最も近い場所に漁業権はありますが、対象種が記載されていません。"
 
