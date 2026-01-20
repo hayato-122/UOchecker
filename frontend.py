@@ -466,7 +466,7 @@ with col_main_right:
         st.markdown(
             """
             <div style="padding: 1.5rem; margin-bottom: 3rem; margin-top: -2.5rem; border-bottom: 0.06rem solid rgba(255,255,255,0.3);">
-                <p style="text-align:center; margin:0; font-weight:bold; color: white;font-size:1.5rem; ">📍 場所を指定してください</p>
+                <p style="text-align:center; margin:0; font-weight:bold; color: white;font-size:1.2rem; ">📍 場所を指定してください</p>
             </div>
         """,
             unsafe_allow_html=True,
