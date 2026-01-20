@@ -65,6 +65,21 @@ def update_address(location_list):
         st.session_state.current_city = ""
         return None
 
+def load_history(load_history):
+    # マーカーの位置を表示
+    load_location = [load_history["lat"], load_history["lng"]]
+    st.session_state.center = load_location
+    st.session_state.marker_location = load_location
+    st.session_state.zoom = 15
+
+    # 住所情報の更新
+    st.session_state.marker_address = load_history["address"]
+    st.session_state.current_prefecture = load_history["prefecture"]
+    st.session_state.current_city = load_history["city"]
+
+    st.session_state.search_error = None
+    st.rerun()
+
 @st.cache_resource# 動画をキャッシュ化
 def get_base64_video(path):
     with open(path, "rb") as f:
@@ -500,39 +515,44 @@ with col_main_right:
                 if (search_clicked or search_map) and search_map and search_map != st.session_state.search_map:
                     st.session_state.search_map = search_map
                     st.session_state.search_error = None
-                    location = None
-                    try:
-                        location = geolocator.geocode(search_map)
-                    except Exception as e:
-                        st.error(f"エラーが発生しました: {e}")
-                    if location:
-                        new_location = [location.latitude, location.longitude]
-                        st.session_state.center = new_location
-                        st.session_state.marker_location = new_location
-                        st.session_state.zoom = 15
-                        update_address(st.session_state.marker_location)
 
-                        # 履歴登録
-                        if search_map not in st.session_state.search_history:
+                    # 重複チェック
+                    search_location = next((item for item in st.session_state.search_history if item["name"] == search_map), None)
+                    if search_location: # 履歴にある場合呼び出し
+                        load_history(search_location)
+                    else: # 履歴にない場合登録
+                        location = None
+                        try:
+                            location = geolocator.geocode(search_map)
+                        except Exception as e:
+                            st.error(f"エラーが発生しました: {e}")
+                        if location:
+                            new_location = [location.latitude, location.longitude]
+                            st.session_state.center = new_location
+                            st.session_state.marker_location = new_location
+                            st.session_state.zoom = 15
+                            update_address(st.session_state.marker_location)
 
-                            # 履歴を住所名、緯度、経度で保存
-                            new_history = {
-                                "name": search_map,
-                                "lat": location.latitude,
-                                "lng": location.longitude,
-                                "address": st.session_state.marker_address,
-                                "prefecture": st.session_state.current_prefecture,
-                                "city": st.session_state.current_city
-                            }
+                            # 履歴登録
+                            if search_map:
+                                # 履歴を住所名、緯度、経度で保存
+                                new_history = {
+                                    "name": search_map,
+                                    "lat": location.latitude,
+                                    "lng": location.longitude,
+                                    "address": st.session_state.marker_address,
+                                    "prefecture": st.session_state.current_prefecture,
+                                    "city": st.session_state.current_city
+                                }
 
-                            # 履歴をセッションに保存
-                            st.session_state.search_history.insert(0, new_history)
-                            # 履歴が3件を超えたら古い履歴から削除
-                            if len(st.session_state.search_history) > 3:
-                                st.session_state.search_history.pop()
-                        st.rerun()
-                    else:
-                        st.session_state.search_error = f"「{search_map}」は見つかりませんでした。別の地名で試してください。"
+                                # 履歴をセッションに保存
+                                st.session_state.search_history.insert(0, new_history)
+                                # 履歴が3件を超えたら古い履歴から削除
+                                if len(st.session_state.search_history) > 3:
+                                    st.session_state.search_history.pop()
+                            st.rerun()
+                        else:
+                            st.session_state.search_error = f"「{search_map}」は見つかりませんでした。別の地名で試してください。"
 
             # マップ表示コンテナ
             with st.container():
@@ -650,19 +670,7 @@ with col_main_right:
                 history_name = history_list["name"]
 
                 if st.button(f"📍 {history_name}", use_container_width=True,type="secondary"):
-                    # マーカーの位置を表示
-                    new_location = [history_list["lat"], history_list["lng"]]
-                    st.session_state.center = new_location
-                    st.session_state.marker_location = new_location
-                    st.session_state.zoom = 15
-
-                    # 住所情報の更新
-                    st.session_state.marker_address = history_list["address"]
-                    st.session_state.current_prefecture = history_list["prefecture"]
-                    st.session_state.current_city = history_list["city"]
-
-                    st.session_state.search_error = None
-                    st.rerun()
+                    load_history(history_list)
 
 
 
