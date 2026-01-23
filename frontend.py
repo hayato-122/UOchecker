@@ -4,6 +4,7 @@ import streamlit as st  # GUI作成、サーバー作成
 from PIL import Image, ImageOps  # 画像の取り扱い
 import folium  # mapデータ
 from streamlit_folium import st_folium  # map表示
+from folium.plugins import LocateControl # 現在地取得用
 from geopy.geocoders import ArcGIS  # マップ情報から緯度経度を取得
 import base64  # 画像の形式を変換
 import requests  # API使用
@@ -562,6 +563,15 @@ with col_main_right:
                     tiles="https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}",
                     attr="Google Maps",
                 )
+                # マップが読み込み時にGPS情報を取得
+                LocateControl(
+                    auto_start=True,  # 自動的に現在地を取得
+                    strings={"title": "現在地を表示", "popup": "現在地"},
+                    locateOptions={
+                        "enableHighAccuracy": True,
+                        "maxZoom": 15
+                    }
+                ).add_to(map_preview)
                 # マーカー表示
                 folium.Marker(
                     location=st.session_state.marker_location,
