@@ -50,20 +50,27 @@ def identify_and_analyze_fish(image_base64: str, prefecture: str, city: str = No
     print(f"Fishing rights: {has_fishing_rights}")
     print(f"Protected species: {protected_species}")
     print(f"Restrictions: {restrictions}")
-
+    protected_species_str = ", ".join(protected_species)
     prompt = f"""Identify the fish in this image. Location: {location}
 
-Return ONLY this JSON format:
+    Based on your identification, strictly check if the fish belongs to (or is a type of) any of the following restricted categories:
+    [{protected_species_str}]
 
-{{
-  "fishNameJa": "Japanese fish name",
-  "fishNameHira": "Japanese hiragana name",
-  "fishNameEn": "English fish name",
-  "scientificName": "Scientific name",
-  "isEdible": true
-}}
+    (Example: If the image is 'Madako' and the list contains 'Tako', set isRestricted to true)
 
-Important: Always provide fishNameJa, fishNameHira,fishNameEn, and scientificName."""
+    Return ONLY this JSON format:
+
+    {{
+      "fishNameJa": "Japanese fish name",
+      "fishNameHira": "Japanese hiragana name",
+      "fishNameEn": "English fish name",
+      "scientificName": "Scientific name",
+      "isEdible": true,
+      "isRestricted": boolean,
+      "restrictedMatch": "The word from the list that matched (e.g. 'たこ') or null"
+    }}
+
+    Important: Always provide fishNameJa, fishNameHira, fishNameEn, scientificName, and isRestricted status."""
 
     try:
         print(f"Sending to Claude API: {location}")
@@ -117,6 +124,8 @@ Important: Always provide fishNameJa, fishNameHira,fishNameEn, and scientificNam
         scientific_name = data.get('scientificName', '')
         is_edible = data.get('isEdible', True)
 
+        is_protected = data.get('isRestricted', False)
+
         if not fish_name_hira:
             print("No fish name found")
             return {
@@ -126,8 +135,6 @@ Important: Always provide fishNameJa, fishNameHira,fishNameEn, and scientificNam
             }
 
         print(f"Identified fish: {fish_name_ja} ({fish_name_en})")
-
-        is_protected = fish_name_hira in protected_species
 
         if has_fishing_rights and is_protected:
             print(f"ILLEGAL: Fishing rights exist in this area")
