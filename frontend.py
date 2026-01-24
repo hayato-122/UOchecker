@@ -95,6 +95,8 @@ if "center" not in st.session_state:  # マップ表示の中央の初期設定
     st.session_state.center = [34.694659, 135.194954]  # 三ノ宮駅
 if "marker_location" not in st.session_state:  # マーカーの初期位置の初期設定
     st.session_state.marker_location = [34.694659, 135.194954]  # 三ノ宮駅
+if "marker_auto" not in st.session_state: # マーカーの自動取得のフラグ設定
+    st.session_state.marker_auto = True
 if "marker_address" not in st.session_state:  # マーカーの位置の住所の初期設定
     update_address(st.session_state.marker_location)  # 関数呼び出しで逆ジオコーディング
 if "current_prefecture" not in st.session_state:  # 都道府県を保存するセッションの初期設定
@@ -563,15 +565,17 @@ with col_main_right:
                     tiles="https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}",
                     attr="Google Maps",
                 )
-                # マップが読み込み時にGPS情報を取得
-                LocateControl(
-                    auto_start=True,  # 自動的に現在地を取得
-                    strings={"title": "現在地を表示", "popup": "現在地"},
-                    locateOptions={
-                        "enableHighAccuracy": True,
-                        "maxZoom": 15
-                    }
-                ).add_to(map_preview)
+                if st.session_state.marker_auto:
+                    st.session_state.marker_auto = False
+                    # マップが読み込み時にGPS情報を取得
+                    LocateControl(
+                        auto_start=True,  # 自動的に現在地を取得
+                        strings={"title": "現在地を表示", "popup": "現在地"},
+                        locateOptions={
+                            "enableHighAccuracy": True,
+                            "maxZoom": 15
+                        }
+                    ).add_to(map_preview)
                 # マーカー表示
                 folium.Marker(
                     location=st.session_state.marker_location,
@@ -752,7 +756,17 @@ with col_main_right:
             """
             st.markdown(fish_info_html, unsafe_allow_html=True)
 
-        # Display gyogyoken information
+        if result.get():
+            poison_info_hyml = f"""
+            <div style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                <p style="color: white; margin: 0 0 0.5rem 0; text-align: center;font-size: 2rem;">{result.get('fishNameJa')}</p>
+                <p style="color: rgba(255,255,255,0.8); margin: 0; text-align: center; font-size: 1.1rem;">{result.get('fishNameEn')}</p>
+                <p style="color: rgba(255,255,255,0.6); margin: 0.5rem 0 0 0; text-align: center; font-style: italic;">学名: {result.get('scientificName', '不明')}</p>
+            </div>
+            """
+            st.markdown(fish_info_html, unsafe_allow_html=True)
+
+        # 漁業権の情報を表示
         if result.get("gyogyoken"):
             gyogyoken_html = f"""
             <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 0.5rem; border-left: 4px solid #ff7b00; margin-bottom: 1.5rem;">
@@ -762,15 +776,7 @@ with col_main_right:
             """
             st.markdown(gyogyoken_html, unsafe_allow_html=True)
 
-        # # Display edibility
-        # if result.get("isEdible") is not None:
-        #     edible_color = "#28a745" if result.get("isEdible") else "#dc3545"
-        #     edible_html = f"""
-        #     <div style="background: rgba(255,255,255,0.05); padding: 0.8rem; border-radius: 0.5rem; margin-bottom: 1.5rem; text-align: center;">
-        #         <p style="color: {edible_color}; margin: 0; font-weight: bold;">{edible_text}</p>
-        #     </div>
-        #     """
-        #     st.markdown(edible_html, unsafe_allow_html=True)
+
 
 
         if st.button("別の画像を選択", key="reset_result_btn", use_container_width=True, type="primary"):
