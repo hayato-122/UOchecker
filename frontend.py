@@ -565,8 +565,7 @@ with col_main_right:
                     tiles="https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}",
                     attr="Google Maps",
                 )
-                if st.session_state.marker_auto:
-                    st.session_state.marker_auto = False
+                if st.session_state.marker_auto: # 初回起動時に現在地を取得
                     # マップが読み込み時にGPS情報を取得
                     LocateControl(
                         auto_start=True,  # 自動的に現在地を取得
@@ -576,9 +575,6 @@ with col_main_right:
                             "maxZoom": 15
                         }
                     ).add_to(map_preview)
-                    st.session_state.marker_location = [map_preview.location[0], map_preview.location[1]]
-                    st.session_state.center = st.session_state.marker_location
-                    st.session_state.zoom = 15
 
                 # マーカー表示
                 folium.Marker(
@@ -592,8 +588,22 @@ with col_main_right:
                     map_preview,
                     height=400,
                     use_container_width=True,
-                    returned_objects=["last_clicked"],
+                    returned_objects=["last_clicked","center"],
                 )
+                print(st.session_state.marker_auto)
+                if st.session_state.marker_auto and map_folium and map_folium.get("center"):
+                    center_loc = [
+                        map_folium["center"]["lat"],
+                        map_folium["center"]["lng"],
+                    ]
+                    if center_loc != [34.694659, 135.194954]:
+                        st.session_state.marker_auto = False
+                        st.session_state.marker_location = center_loc
+                        st.session_state.center = center_loc
+                        st.session_state.zoom = 15
+                        print(st.session_state.marker_location,"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                        update_address(st.session_state.marker_location)
+                        st.rerun()
 
                 # マップがクリックされたら緯度経度を取得してマーカーを更新
                 if map_folium and map_folium.get("last_clicked"):
@@ -752,57 +762,57 @@ with col_main_right:
 
         if result.get("fishNameJa"):
             # 毒・危険情報の表示
-            danger_type = result.get("danger_type", "none")
-            poison_text = result.get("poison_info")
-
-            if danger_type != "none" and poison_text:
-                # 触ると危険
-                if danger_type == "touch":
-                    danger_color = "#ff2a2a"
-                    danger_bg = "rgba(216, 50, 255, 0.2)"
-                    danger_title = "触ると危険"
-
-                # 食べると危険
-                elif danger_type == "eat":
-                    danger_color = "#ff8c00"
-                    danger_bg = "rgba(216, 50, 255, 0.2)"
-                    danger_title = "食べると危険"
-
-                # HTML生成
-                poison_info_html = f"""
-                                <div style="
-                                    background: {danger_bg}; 
-                                    padding: 1rem; 
-                                    border-radius: 0.8rem; 
-                                    border: 2px solid {danger_color}; 
-                                    margin-bottom: 1.5rem;
-                                    display: flex;
-                                    flex-direction: column;
-                                    align-items: center;
-                                    gap: 0.5rem;
-                                ">
-                                    <div style="
-                                        color: {danger_color};
-                                        font-size: 2rem;
-                                        font-weight: bold;
-                                        display: flex;
-                                        align-items: center;
-                                        gap: 0.5rem;
-                                    ">{danger_title}
-                                    </div>
-                                    <p style="
-                                        color: white; 
-                                        margin: 0; 
-                                        text-align: center; 
-                                        font-size: 1rem;
-                                        line-height: 1.5;
-                                    ">
-                                        {poison_text}
-                                    </p>
-                                </div>
-                                """
-
-                st.markdown(poison_info_html, unsafe_allow_html=True)
+            # danger_type = result.get("danger_type", "none")
+            # poison_text = result.get("poison_info")
+            #
+            # if danger_type != "none" and poison_text:
+            #     # 触ると危険
+            #     if danger_type == "touch":
+            #         danger_color = "#ff2a2a"
+            #         danger_bg = "rgba(216, 50, 255, 0.2)"
+            #         danger_title = "触ると危険"
+            #
+            #     # 食べると危険
+            #     elif danger_type == "eat":
+            #         danger_color = "#ff8c00"
+            #         danger_bg = "rgba(216, 50, 255, 0.2)"
+            #         danger_title = "この魚は毒を持っています"
+            #
+            #     # HTML生成
+            #     poison_info_html = f"""
+            #                     <div style="
+            #                         background: {danger_bg};
+            #                         padding: 1rem;
+            #                         border-radius: 0.8rem;
+            #                         border: 2px solid {danger_color};
+            #                         margin-bottom: 1.5rem;
+            #                         display: flex;
+            #                         flex-direction: column;
+            #                         align-items: center;
+            #                         gap: 0.5rem;
+            #                     ">
+            #                         <div style="
+            #                             color: {danger_color};
+            #                             font-size: 2rem;
+            #                             font-weight: bold;
+            #                             display: flex;
+            #                             align-items: center;
+            #                             gap: 0.5rem;
+            #                         ">{danger_title}
+            #                         </div>
+            #                         <p style="
+            #                             color: white;
+            #                             margin: 0;
+            #                             text-align: center;
+            #                             font-size: 1rem;
+            #                             line-height: 1.5;
+            #                         ">
+            #                             "食べると危険"
+            #                         </p>
+            #                     </div>
+            #                     """
+            #
+            #    st.markdown(poison_info_html, unsafe_allow_html=True)
             fish_info_html = f"""
             <div style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
                 <p style="color: white; margin: 0 0 0.5rem 0; text-align: center;font-size: 2rem;">{result.get('fishNameJa')}</p>
