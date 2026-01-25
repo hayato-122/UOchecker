@@ -51,11 +51,13 @@ def identify_and_analyze_fish(image_base64: str, prefecture: str, city: str = No
     print(f"Protected species: {protected_species}")
     print(f"Restrictions: {restrictions}")
     protected_species_str = ", ".join(protected_species)
-    prompt = f"""Identify the fish in this image. Location: {location}
+    prompt = f"""Identify the fish in this image. The coast around {location}
 
     Based on your identification, strictly check if the fish belongs to (or is a type of) any of the following restricted categories:
     [{protected_species_str}]
-
+    
+    Detailed Observation: Carefully analyze the morphological characteristics (body shape, color, patterns, fin shapes, mouth position, etc.).
+    Respond ONLY with the JSON object. Do not include any conversational text or explanations outside the JSON.
     (Example: If the image is 'Madako' and the list contains 'Tako', set isRestricted to true)
 
     Return ONLY this JSON format:
