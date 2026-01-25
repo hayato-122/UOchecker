@@ -515,7 +515,7 @@ with col_main_right:
                 )
             with col_search_btn:  # 検索ボタン表示
                 search_clicked = st.button("検索", type="primary")
-                if (search_clicked or search_map) and search_map and search_map != st.session_state.search_map:
+                if search_clicked or (search_map and search_map != st.session_state.search_map):
                     st.session_state.search_map = search_map
                     st.session_state.search_error = None
 
@@ -590,7 +590,7 @@ with col_main_right:
                     use_container_width=True,
                     returned_objects=["last_clicked","center"],
                 )
-                print(st.session_state.marker_auto)
+
                 if st.session_state.marker_auto and map_folium and map_folium.get("center"):
                     center_loc = [
                         map_folium["center"]["lat"],
@@ -601,7 +601,6 @@ with col_main_right:
                         st.session_state.marker_location = center_loc
                         st.session_state.center = center_loc
                         st.session_state.zoom = 15
-                        print(st.session_state.marker_location,"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
                         update_address(st.session_state.marker_location)
                         st.rerun()
 
@@ -837,7 +836,7 @@ with col_main_right:
 
         if st.button("別の画像を選択", key="reset_result_btn", use_container_width=True, type="primary"):
             st.session_state.uploaded_file = None
-
+            st.session_state.search_map = None
             st.session_state.result = None
 
             st.rerun()
