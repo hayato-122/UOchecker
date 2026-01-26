@@ -50,12 +50,13 @@ longitude: float = None) -> Dict:
     print(f"Protected species: {protected_species}")
     print(f"Restrictions: {restrictions}")
     protected_species_str = ", ".join(protected_species)
-    prompt = prompt = f"""Identify the fish in this image captured near {location}.
+    prompt = f"""Identify the fish in this image captured near {location}.
 
 Follow these steps for high-accuracy identification:
 1. Observe morphological details: body depth-to-length ratio, fin shapes (especially the caudal and dorsal fin filaments), mouth structure (check for grooves or jaw shape), and color patterns.
 2. Compare with similar species: Specifically distinguish between look-alikes (e.g., Aprion virescens vs. Paracaesio caerulea).
 3. Check against the restricted list: [{protected_species_str}]
+4. Check if this fish species is known to be poisonous or venomous.
 
 Respond ONLY with the following JSON object. Do not include any text outside the JSON.
 
@@ -66,8 +67,9 @@ Respond ONLY with the following JSON object. Do not include any text outside the
   "fishNameEn": "English fish name",
   "scientificName": "Scientific name",
   "isEdible": true,
+  "isPoisonous": false,
   "isRestricted": false,
-  "restrictedMatch": "The word from the list that matched or null",
+  "restrictedMatch": "The word from the list that matched or null"
 }}
 
 Important: Ensure the 'morphologicalAnalysis' confirms why this specific species was chosen over similar ones."""
@@ -102,6 +104,7 @@ Important: Ensure the 'morphologicalAnalysis' confirms why this specific species
         fish_name_en = data.get('fishNameEn', '')
         scientific_name = data.get('scientificName', '')
         is_edible = data.get('isEdible', True)
+        is_poisonous = data.get('isPoisonous', False)
 
         is_protected = data.get('isRestricted', False)
 
@@ -114,6 +117,7 @@ Important: Ensure the 'morphologicalAnalysis' confirms why this specific species
             }
 
         print(f"Identified fish: {fish_name_ja} ({fish_name_en})")
+        print(f"Poisonous: {is_poisonous}")
 
         if has_fishing_rights and is_protected:
             print(f"ILLEGAL: Fishing rights exist in this area")
@@ -124,6 +128,7 @@ Important: Ensure the 'morphologicalAnalysis' confirms why this specific species
                 "fishNameEn": fish_name_en,
                 "scientificName": scientific_name,
                 "isEdible": is_edible,
+                "isPoisonous": is_poisonous,
                 "gyogyoken": restrictions,
                 "message": f"Fishing rights area. Taking home prohibited."
             }
@@ -136,6 +141,7 @@ Important: Ensure the 'morphologicalAnalysis' confirms why this specific species
                 "fishNameEn": fish_name_en,
                 "scientificName": scientific_name,
                 "isEdible": is_edible,
+                "isPoisonous": is_poisonous,
             }
 
     except Exception as e:
