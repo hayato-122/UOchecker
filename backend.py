@@ -92,7 +92,7 @@ def identify_and_check_fish(image_bytes: bytes, prefecture: str, city: str = Non
         fish_name_ja = result.get('fishNameJa', '不明')
         fish_name_en = result.get('fishNameEn', '')
         scientific_name = result.get('scientificName', '')
-
+        is_poisonous = result.get('isPoisonous', False)
         print(f"識別結果: {fish_name_ja} ({fish_name_en})")
         print(f"学名: {scientific_name}")
         print(f"持ち帰り: {'OK' if result.get('isLegal') else 'NG'}")
@@ -109,6 +109,7 @@ def identify_and_check_fish(image_bytes: bytes, prefecture: str, city: str = Non
             "scientificName": scientific_name,
             "gyogyoken": result.get('gyogyoken'),
             "isEdible": result.get('isEdible'),
+            "isPoisonous": is_poisonous,
             "timestamp": datetime.utcnow().isoformat()
         }
 

@@ -32,7 +32,7 @@ class FisheryRightsAPI:
             }
 
             print(f"共同漁業権API(v2)呼び出し: {longitude}, {latitude}")
-            response = self.session.get(self.BASE_URL, params=params, timeout=10)
+            response = self.session.get(self.BASE_URL, params=params, verify=False,timeout=10)
 
             if response.status_code == 200:
                 data = response.json()

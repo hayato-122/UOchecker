@@ -73,7 +73,12 @@ Respond ONLY with the following JSON object. Do not include any text outside the
 }}
 
 Important: Ensure the 'morphologicalAnalysis' confirms why this specific species was chosen over similar ones."""
-
+    safety_settings = {
+        "HARM_CATEGORY_HARASSMENT": "BLOCK_NONE",
+        "HARM_CATEGORY_HATE_SPEECH": "BLOCK_NONE",
+        "HARM_CATEGORY_SEXUALLY_EXPLICIT": "BLOCK_NONE",
+        "HARM_CATEGORY_DANGEROUS_CONTENT": "BLOCK_NONE",
+    }
     try:
         print(f"Sending to Gemini API: {location}")
 
@@ -86,7 +91,8 @@ Important: Ensure the 'morphologicalAnalysis' confirms why this specific species
             "data": image_bytes
             }
                 ],
-            generation_config=genai.types.GenerationConfig(response_mime_type="application/json")
+            generation_config=genai.types.GenerationConfig(response_mime_type="application/json"),
+            safety_settings = safety_settings
         )
 
         try:
