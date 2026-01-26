@@ -1,38 +1,37 @@
-# utils/claude_api.py
+# utils/gemini_api.py
 
 import os
 import json
-from anthropic import Anthropic
+import google.generativeai as genai
 from typing import Dict
 from .fishery_rights_api import get_fishery_rights_by_location
 
 
-def get_claude_client():
+def get_gemini_client():
     try:
         api_key = None
 
-        if 'ANTHROPIC_API_KEY_TXT' in os.environ:
-            api_key = os.environ['ANTHROPIC_API_KEY_TXT']
-        elif os.path.exists('anthropic_key.txt'):
-            with open('anthropic_key.txt', 'r', encoding='utf-8') as f:
+        if 'GEMINI_API_KEY_TXT' in os.environ:
+            api_key = os.environ['GEMINI_API_KEY_TXT']
+        elif os.path.exists('gemini_api_key.txt'):
+            with open('gemini_api_key.txt', 'r', encoding='utf-8') as f:
                 api_key = f.read().strip().split('\n')[0].strip()
 
         if not api_key:
-            raise Exception("ANTHROPIC_API_KEY_TXT not found!")
+            raise Exception("GEMINI_API_KEY_TXT not found!")
+        if not api_key:
+            raise Exception("GOOGLE_API_KEY not found! 環境変数またはgoogle_api_key.txtを設定してください。")
 
-        if not api_key.startswith('sk-ant-'):
-            raise Exception(f"Invalid API key format: {api_key[:15]}...")
-
-        return Anthropic(api_key=api_key)
+        genai.configure(api_key=api_key)
 
     except Exception as e:
-        print(f"Claude API error: {e}")
+        print(f"Gemini API Config error: {e}")
         raise
 
 
-def identify_and_analyze_fish(image_base64: str, prefecture: str, city: str = None, latitude: float = None,
-                              longitude: float = None) -> Dict:
-    client = get_claude_client()
+def identify_and_analyze_fish(image_bytes: bytes, prefecture: str, city: str = None, latitude: float = None,
+longitude: float = None) -> Dict:
+    get_gemini_client()
     location = f"{city}, {prefecture}" if city else prefecture
 
     print("Getting fishery rights data...")
@@ -51,67 +50,45 @@ def identify_and_analyze_fish(image_base64: str, prefecture: str, city: str = No
     print(f"Protected species: {protected_species}")
     print(f"Restrictions: {restrictions}")
     protected_species_str = ", ".join(protected_species)
-    prompt = f"""Identify the fish in this image. The coast around {location}
+    prompt = prompt = f"""Identify the fish in this image captured near {location}.
 
-    Based on your identification, strictly check if the fish belongs to (or is a type of) any of the following restricted categories:
-    [{protected_species_str}]
-    
-    Detailed Observation: Carefully analyze the morphological characteristics (body shape, color, patterns, fin shapes, mouth position, etc.).
-    Respond ONLY with the JSON object. Do not include any conversational text or explanations outside the JSON.
-    (Example: If the image is 'Madako' and the list contains 'Tako', set isRestricted to true)
+Follow these steps for high-accuracy identification:
+1. Observe morphological details: body depth-to-length ratio, fin shapes (especially the caudal and dorsal fin filaments), mouth structure (check for grooves or jaw shape), and color patterns.
+2. Compare with similar species: Specifically distinguish between look-alikes (e.g., Aprion virescens vs. Paracaesio caerulea).
+3. Check against the restricted list: [{protected_species_str}]
 
-    Return ONLY this JSON format:
+Respond ONLY with the following JSON object. Do not include any text outside the JSON.
 
-    {{
-      "fishNameJa": "Japanese fish name",
-      "fishNameHira": "Japanese hiragana name",
-      "fishNameEn": "English fish name",
-      "scientificName": "Scientific name",
-      "isEdible": true,
-      "isRestricted": boolean,
-      "restrictedMatch": "The word from the list that matched (e.g. 'たこ') or null"
-    }}
+{{
+  "morphologicalAnalysis": "Briefly describe the key features observed (e.g., elongated body, bifurcated tail, mouth groove)",
+  "fishNameJa": "Japanese fish name",
+  "fishNameHira": "Japanese hiragana name",
+  "fishNameEn": "English fish name",
+  "scientificName": "Scientific name",
+  "isEdible": true,
+  "isRestricted": false,
+  "restrictedMatch": "The word from the list that matched or null",
+}}
 
-    Important: Always provide fishNameJa, fishNameHira, fishNameEn, scientificName, and isRestricted status."""
+Important: Ensure the 'morphologicalAnalysis' confirms why this specific species was chosen over similar ones."""
 
     try:
-        print(f"Sending to Claude API: {location}")
+        print(f"Sending to Gemini API: {location}")
 
-        message = client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=1024,
-            temperature=0,
-            messages=[{
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": "image/jpeg",
-                            "data": image_base64
-                        }
-                    },
-                    {
-                        "type": "text",
-                        "text": prompt
-                    }
-                ]
-            }]
+        model = genai.GenerativeModel("gemini-3-flash-preview")
+
+        response = model.generate_content(
+            contents=[
+                prompt,{
+            "mime_type": "image/jpeg",
+            "data": image_bytes
+            }
+                ],
+            generation_config=genai.types.GenerationConfig(response_mime_type="application/json")
         )
 
-        response_text = message.content[0].text.strip()
-
-        if response_text.startswith("```json"):
-            response_text = response_text[7:]
-        if response_text.startswith("```"):
-            response_text = response_text[3:]
-        if response_text.endswith("```"):
-            response_text = response_text[:-3]
-        response_text = response_text.strip()
-
         try:
-            data = json.loads(response_text)
+            data = json.loads(response.text)
         except json.JSONDecodeError as e:
             print(f"JSON parse error: {e}")
             return {

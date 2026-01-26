@@ -1,8 +1,7 @@
 streamlit
 Pillow
 firebase-admin
-google-cloud-vision
-anthropic
+google-generativeai
 folium
 streamlit-folium
 geopy
