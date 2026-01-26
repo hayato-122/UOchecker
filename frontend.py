@@ -761,65 +761,51 @@ with col_main_right:
 
         if result.get("fishNameJa"):
             # 毒・危険情報の表示
-            # danger_type = result.get("danger_type", "none")
-            # poison_text = result.get("poison_info")
-            #
-            # if danger_type != "none" and poison_text:
-            #     # 触ると危険
-            #     if danger_type == "touch":
-            #         danger_color = "#ff2a2a"
-            #         danger_bg = "rgba(216, 50, 255, 0.2)"
-            #         danger_title = "触ると危険"
-            #
-            #     # 食べると危険
-            #     elif danger_type == "eat":
-            #         danger_color = "#ff8c00"
-            #         danger_bg = "rgba(216, 50, 255, 0.2)"
-            #         danger_title = "この魚は毒を持っています"
-            #
-            #     # HTML生成
-            #     poison_info_html = f"""
-            #                     <div style="
-            #                         background: {danger_bg};
-            #                         padding: 1rem;
-            #                         border-radius: 0.8rem;
-            #                         border: 2px solid {danger_color};
-            #                         margin-bottom: 1.5rem;
-            #                         display: flex;
-            #                         flex-direction: column;
-            #                         align-items: center;
-            #                         gap: 0.5rem;
-            #                     ">
-            #                         <div style="
-            #                             color: {danger_color};
-            #                             font-size: 2rem;
-            #                             font-weight: bold;
-            #                             display: flex;
-            #                             align-items: center;
-            #                             gap: 0.5rem;
-            #                         ">{danger_title}
-            #                         </div>
-            #                         <p style="
-            #                             color: white;
-            #                             margin: 0;
-            #                             text-align: center;
-            #                             font-size: 1rem;
-            #                             line-height: 1.5;
-            #                         ">
-            #                             "食べると危険"
-            #                         </p>
-            #                     </div>
-            #                     """
-            #
-            #    st.markdown(poison_info_html, unsafe_allow_html=True)
-            fish_info_html = f"""
-            <div style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
-                <p style="color: white; margin: 0 0 0.5rem 0; text-align: center;font-size: 2rem;">{result.get('fishNameJa')}</p>
-                <p style="color: rgba(255,255,255,0.8); margin: 0; text-align: center; font-size: 1.1rem;">{result.get('fishNameEn')}</p>
-                <p style="color: rgba(255,255,255,0.6); margin: 0.5rem 0 0 0; text-align: center; font-style: italic;">学名: {result.get('scientificName', '不明')}</p>
-            </div>
-            """
-            st.markdown(fish_info_html, unsafe_allow_html=True)
+             = result.get("danger_type", "none")
+            if ()
+                # HTML生成
+                poison_info_html = f"""
+                                <div style="
+                                    background: rgba(216, 50, 255, 0.2);
+                                    padding: 1rem;
+                                    border-radius: 0.8rem;
+                                    border: 2px solid "#ff8c00";
+                                    margin-bottom: 1.5rem;
+                                    display: flex;
+                                    flex-direction: column;
+                                    align-items: center;
+                                    gap: 0.5rem;
+                                ">
+                                    <div style="
+                                        color: "#ff8c00";
+                                        font-size: 2rem;
+                                        font-weight: bold;
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 0.5rem;
+                                    ">"この魚は毒を持っています"
+                                    </div>
+                                    <p style="
+                                        color: white;
+                                        margin: 0;
+                                        text-align: center;
+                                        font-size: 1rem;
+                                        line-height: 1.5;
+                                    ">
+                                        "食べると危険"
+                                    </p>
+                                </div>"""
+
+                st.markdown(poison_info_html, unsafe_allow_html=True)
+
+                fish_info_html = f"""
+                <div style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                    <p style="color: white; margin: 0 0 0.5rem 0; text-align: center;font-size: 2rem;">{result.get('fishNameJa')}</p>
+                    <p style="color: rgba(255,255,255,0.8); margin: 0; text-align: center; font-size: 1.1rem;">{result.get('fishNameEn')}</p>
+                    <p style="color: rgba(255,255,255,0.6); margin: 0.5rem 0 0 0; text-align: center; font-style: italic;">学名: {result.get('scientificName', '不明')}</p>
+                </div>
+                """
+                st.markdown(fish_info_html, unsafe_allow_html=True)
 
         # 漁業権の情報を表示
         if result.get("gyogyoken"):
