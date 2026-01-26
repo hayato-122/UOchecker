@@ -1,39 +1,26 @@
 # backend.py
 import os
 import json
-import base64
 from datetime import datetime
 from typing import Dict, Tuple
 from pathlib import Path
 
 firebase_config_path = Path('firebase_config.json')
-anthropic_key_path = Path('anthropic_key.txt')
+gemini_api_key_path = Path('gemini_api_key.txt')
 ocp_api_key_path = Path('ocp_api_key.txt')
-firebase_json = os.environ.get('FIREBASE_CONFIG_JSON')
-anthropic_txt = os.environ.get('ANTHROPIC_KEY_TXT')
+gemini_api_key_txt = os.environ.get('GEMINI_API_KEY_TXT')
 ocp_api_key_txt = os.environ.get('OCP_API_KEY_TXT')
 
-if firebase_json:
-    with open('firebase_config.json', 'w') as f:
-        f.write(firebase_json)
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'firebase_config.json'
-    print("firebase_config loaded from huggingface")
-elif firebase_config_path.exists():
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'firebase_config.json'
-    print("firebase_config.json found")
-else:
-    print("firebase_config.json not found")
-
-if anthropic_txt:
-    os.environ['ANTHROPIC_API_KEY_TXT'] = anthropic_txt
-    print("anthropic_key loaded from huggingface")
-elif anthropic_key_path.exists():
-    with open('anthropic_key.txt', 'r') as f:
+if gemini_api_key_txt:
+    os.environ['GEMINI_API_KEY_TXT'] = gemini_api_key_txt
+    print("gemini_api_key loaded from huggingface")
+elif gemini_api_key_path.exists():
+    with open('gemini_api_key.txt', 'r') as f:
         api_key = f.read().strip().split('\n')[0].strip()
-        os.environ['ANTHROPIC_API_KEY_TXT'] = api_key
-    print("anthropic_key.txt found")
-elif 'ANTHROPIC_API_KEY_TXT' not in os.environ:
-    print("ANTHROPIC_API_KEY not found")
+        os.environ['GEMINI_API_KEY_TXT'] = api_key
+    print("gemini_api_key.txt found")
+elif 'GEMINI_API_KEY_TXT' not in os.environ:
+    print("GEMINI_API_KEY not found")
 
 if ocp_api_key_txt:
     os.environ['OCP_API_KEY_TXT'] = ocp_api_key_txt
@@ -46,9 +33,7 @@ elif ocp_api_key_path.exists():
 elif 'OCP_API_KEY_TXT' not in os.environ:
     print("OCP_API_KEY not found")
 
-from utils.claude_api import identify_and_analyze_fish
-from utils.database import get_from_cache, save_to_cache, create_cache_key
-
+from utils.gemini_api import identify_and_analyze_fish
 
 def validate_input(image_bytes: bytes, prefecture: str) -> Tuple[bool, str]:
     if not image_bytes or len(image_bytes) == 0:
@@ -91,22 +76,10 @@ def identify_and_check_fish(image_bytes: bytes, prefecture: str, city: str = Non
             print(f"座標: ({latitude}, {longitude})")
         print(f"{'=' * 60}\n")
 
-        print("Claude APIで魚を識別・分析中...")
-
-        try:
-            image_base64 = base64.b64encode(image_bytes).decode('utf-8')
-            print(f"画像をbase64に変換しました")
-        except Exception as e:
-            print(f"Base64変換エラー: {e}")
-            return {
-                "success": False,
-                "error": "画像変換エラー",
-                "message": "画像の処理中にエラーが発生しました。",
-                "isLegal": False
-            }
+        print("Gemini APIで魚を識別・分析中...")
 
         result = identify_and_analyze_fish(
-            image_base64=image_base64,
+            image_bytes=image_bytes,
             prefecture=prefecture,
             city=city,
             latitude=latitude,
@@ -124,32 +97,6 @@ def identify_and_check_fish(image_bytes: bytes, prefecture: str, city: str = Non
         print(f"学名: {scientific_name}")
         print(f"持ち帰り: {'OK' if result.get('isLegal') else 'NG'}")
 
-        cache_key = create_cache_key(prefecture, fish_name_ja)
-        cached_data = get_from_cache(cache_key)
-
-        if cached_data:
-            print("キャッシュHIT")
-            return {
-                "success": True,
-                "fromCache": True,
-                "isLegal": cached_data.get('isLegal'),
-                "fishNameJa": cached_data.get('fishNameJa'),
-                "fishNameEn": cached_data.get('fishNameEn'),
-                "scientificName": cached_data.get('scientificName'),
-                "gyogyoken": cached_data.get('gyogyoken'),
-                "isEdible": cached_data.get('isEdible'),
-                "timestamp": datetime.utcnow().isoformat()
-            }
-
-        save_data = {
-            'isLegal': result.get('isLegal'),
-            'fishNameJa': fish_name_ja,
-            'fishNameEn': fish_name_en,
-            'scientificName': scientific_name,
-            'gyogyoken': result.get('gyogyoken'),
-            'isEdible': result.get('isEdible')
-        }
-        save_to_cache(cache_key, save_data)
 
         print(f"完了\n{'=' * 60}\n")
 
