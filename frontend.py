@@ -2,6 +2,7 @@
 # 実行コマンド　streamlit run frontend.py
 import streamlit as st  # GUI作成、サーバー作成
 from PIL import Image, ImageOps  # 画像の取り扱い
+import pillow_heif
 import folium  # mapデータ
 from streamlit_folium import st_folium  # map表示
 from folium.plugins import LocateControl # 現在地取得用
@@ -12,6 +13,9 @@ import io  # bytes処理用
 import time
 
 from backend import identify_and_check_fish  # backedの関数呼び出し
+
+# heifに対応させるpillow設定
+pillow_heif.register_heif_opener()
 
 # geolocatorインスタンス作成　update_addressの逆ジオコーディングを実行するため
 geolocator = ArcGIS(user_agent="uochecker-app-v1.0", timeout=10)
@@ -456,7 +460,7 @@ with col_main_left:
             if st.session_state.uploaded_file is None:  # 画像がアップロードされていない場合
                 col_up_left, col_up_center, col_up_right = st.columns([1, 3, 1])
                 with col_up_center:
-                    uploaded_file = st.file_uploader("", type=["png", "jpg", "jpeg"])
+                    uploaded_file = st.file_uploader("", type=["png", "jpg", "jpeg","heif","heic","HEIC"])
                     if uploaded_file is not None:
                         st.session_state.uploaded_file = uploaded_file
                         st.rerun()

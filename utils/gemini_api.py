@@ -50,29 +50,47 @@ longitude: float = None) -> Dict:
     print(f"Protected species: {protected_species}")
     print(f"Restrictions: {restrictions}")
     protected_species_str = ", ".join(protected_species)
-    prompt = f"""Identify the fish in this image captured near {location}.
+    prompt = prompt = f"""Identify the fish species in this image captured near {location}.
 
-Follow these steps for high-accuracy identification:
-1. Observe morphological details: body depth-to-length ratio, fin shapes (especially the caudal and dorsal fin filaments), mouth structure (check for grooves or jaw shape), and color patterns.
-2. Compare with similar species: Specifically distinguish between look-alikes (e.g., Aprion virescens vs. Paracaesio caerulea).
-3. Check against the restricted list: [{protected_species_str}]
-4. Check if this fish species is known to be poisonous or venomous.
+Follow this systematic identification process:
 
-Respond ONLY with the following JSON object. Do not include any text outside the JSON.
+1. Morphological Analysis:
+   - Body shape: depth-to-length ratio, overall profile
+   - Fins: count rays, note shape/size of dorsal, caudal, pectoral, pelvic, and anal fins
+   - Head features: mouth position, jaw structure, eye size and placement
+   - Coloration: base color, patterns (stripes, spots, bands), color gradients
+   - Distinguishing marks: lateral line, fin filaments, body grooves, scales texture
+
+2. Differential Diagnosis:
+   - List the most similar species
+   - Explain which specific features rule out each look-alike
+   - Justify your final identification with definitive characteristics
+
+3. Species Assessment:
+   - Cross-reference against restricted species list: [{protected_species_str}]
+   - Verify toxicity status (poisonous flesh, venomous spines, ciguatera risk)
+   - Confirm edibility and any consumption warnings
+
+Output ONLY the following JSON structure with no additional text:
 
 {{
-  "morphologicalAnalysis": "Briefly describe the key features observed (e.g., elongated body, bifurcated tail, mouth groove)",
-  "fishNameJa": "Japanese fish name",
-  "fishNameHira": "Japanese hiragana name",
-  "fishNameEn": "English fish name",
-  "scientificName": "Scientific name",
-  "isEdible": true,
-  "isPoisonous": false,
-  "isRestricted": false,
-  "restrictedMatch": "The word from the list that matched or null"
+  "morphologicalAnalysis": "Detailed description of diagnostic features observed (body shape, fin characteristics, coloration patterns, unique markings)",
+  "differentialDiagnosis": "Explanation of how this species was distinguished from similar-looking species",
+  "fishNameJa": "魚の和名",
+  "fishNameHira": "ひらがな表記",
+  "fishNameEn": "Common English name",
+  "scientificName": "Genus species",
+  "familyName": "Family name (scientific)",
+  "isEdible": true or false,
+  "isPoisonous": false or true,
+  "poisonType": "Type of toxin if applicable, or null",
+  "isRestricted": false or true,
+  "restrictedMatch": "Matched term from list or null",
+  "confidenceLevel": "high/medium/low",
+  "additionalNotes": "Any relevant warnings, seasonal considerations, or regional variations"
 }}
 
-Important: Ensure the 'morphologicalAnalysis' confirms why this specific species was chosen over similar ones."""
+Critical: Base identification on multiple confirmatory features, not single characteristics."""
     safety_settings = {
         "HARM_CATEGORY_HARASSMENT": "BLOCK_NONE",
         "HARM_CATEGORY_HATE_SPEECH": "BLOCK_NONE",
