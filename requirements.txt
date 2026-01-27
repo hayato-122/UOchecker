@@ -1,5 +1,6 @@
 streamlit
 Pillow
+pillow-heif
 firebase-admin
 google-generativeai
 folium
