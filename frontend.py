@@ -83,6 +83,7 @@ def load_history(load_history):
     st.session_state.current_city = load_history["city"]
 
     st.session_state.search_error = None
+    st.session_state.marker_auto = False
     st.rerun()
 
 @st.cache_resource# 動画をキャッシュ化
@@ -463,6 +464,7 @@ with col_main_left:
                     uploaded_file = st.file_uploader("", type=["png", "jpg", "jpeg","heif","heic","HEIC"])
                     if uploaded_file is not None:
                         st.session_state.uploaded_file = uploaded_file
+                        st.session_state.marker_auto = False
                         st.rerun()
     else:  # 画像がアップロードされた場合
         try:
@@ -477,6 +479,7 @@ with col_main_left:
                 if st.button("別の画像を選択", use_container_width=True,type="primary"):
                     st.session_state.uploaded_file = None
                     st.session_state.result = None
+                    st.session_state.marker_auto = False
                     st.rerun()
         except Exception as e:
             st.error(f"読み込みエラー: {e}")
@@ -594,7 +597,7 @@ with col_main_right:
                     map_preview,
                     height=400,
                     use_container_width=True,
-                    returned_objects=["last_clicked","center"],
+                    returned_objects=["last_clicked","center","zoom"],
                 )
 
                 if st.session_state.marker_auto and map_folium and map_folium.get("center") and map_folium.get("zoom"):
@@ -622,6 +625,7 @@ with col_main_right:
                         st.session_state.center = clicked_loc
                         st.session_state.zoom = 15
                         update_address(st.session_state.marker_location)
+                        st.session_state.marker_auto = False
                         st.rerun()
 
             # sessionを変数に変換
@@ -648,6 +652,7 @@ with col_main_right:
                 st.warning("現在地が不明です。")
             else:
                 st.session_state.run_process = True
+                st.session_state.marker_auto = False
                 st.rerun()
 
         if st.session_state.run_process:
@@ -689,6 +694,7 @@ with col_main_right:
                 st.error(f"予期せぬエラーが発生しました: {e}")
             finally:
                 st.session_state.run_process = False
+                st.session_state.marker_auto = False
                 st.rerun()
 
         # 履歴表示
@@ -821,5 +827,5 @@ with col_main_right:
             st.session_state.uploaded_file = None
             st.session_state.search_map = None
             st.session_state.result = None
-
+            st.session_state.marker_auto = False
             st.rerun()
