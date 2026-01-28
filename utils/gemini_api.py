@@ -80,28 +80,30 @@ longitude: float = None) -> Dict:
 
     2.  **Name Extraction**: Provide: `fishNameJa`, `fishNameHira`, `fishNameEn`, `scientificName`.
 
-    3.  **Safety Assessment (Logic Restoration)**:
-        -   Determine `isEdible`: Generally sold as food? (Note: Some toxic fish are sold as delicacies).
+    3.  **Safety Assessment**:
+        -   Determine `isEdible`: Generally sold as food?
         -   **Strictly check for `isPoisonous` based on TOXIN TYPE**:
-            -   **Rule**: If the species is a known vector for the following toxins, set `isPoisonous` to `true` (even if it is edible or delicious).
-                1.  **Tetrodotoxin (TTX)**: Pufferfish, etc.
-                2.  **Ciguatera Toxin**: **Large predatory reef fish** (e.g., *Aprion* spp., *Lutjanus* spp., *Sphyraena* spp.). **Warning Level: High.**
-                3.  **Wax Esters**: Oilfish, Escolar.
-                4.  **Venom**: Lionfish, Stonefish.
-            -   **Decision**: Does *[Identified Species]* carry a risk of Ciguatera or TTX in relevant literature? 
-                -   **YES** -> Set `isPoisonous: true`.
-                -   **NO** -> Set `isPoisonous: false`.
+            -   **Rule**: If the species is a known vector for Ciguatera, TTX, or Wax Esters, set `isPoisonous` to `true` (Warning), even if edible.
+            -   **Decision**: Does *[Identified Species]* carry a risk of Ciguatera or TTX? -> **YES** = `true`.
 
-    4.  **Regulatory Check**:
-        -   **LOCAL REGULATION CHECK**: Verify if the identified species corresponds to any name in this restricted list: [{protected_species_str}].
-        -   **General Check**: Check if the fish is restricted under CITES, the IUCN Red List, or Japanese Fishery Laws.
-        -   **Action**: If the species (or its family/aliases) matches the list or general laws, set `isRestricted` to `true`. Otherwise `false`.
+    4.  **Regulatory Check (Strict List Semantic Matching)**:
+        -   **Reference List**: [{protected_species_str}]
+        -   **Logic**: Check if the identified species is included in the **Reference List**.
+        -   **Semantic/Fuzzy Matching Rule (CRITICAL)**:
+            -   You must match not only exact strings but also **synonyms, broader categories, and variations**.
+            -   *Example A*: If List has "Tai" (Sea Bream) and Image is "Madai" (Red Sea Bream) -> **MATCH (true)**.
+            -   *Example B*: If List has "Maguro" (Tuna) and Image is "Kuro-maguro" (Bluefin Tuna) -> **MATCH (true)**.
+            -   *Example C*: If List has "Fugu" and Image is "Kusa-fugu" -> **MATCH (true)**.
+        -   **Decision**:
+            -   **IF MATCH FOUND (Semantically)**: Set `isRestricted: true`.
+            -   **IF NO MATCH**: Set `isRestricted: false`. (Ignore global Red Lists like IUCN if not in the Reference List).
 
     5.  **Formatting**: Output the result strictly as a valid JSON object matching the defined schema.
 
     ## Parameters
     -   **Geographic Context**: Japanese waters.
-    -   **Toxicity Threshold**: **Risk-Based**. (Presence of risk factor = Poisonous).
+    -   **Toxicity Threshold**: Risk-Based.
+    -   **Restricted Logic**: **Strictly based on the provided list only**, but allowing semantic matches.
     -   **Output Language**: As per JSON keys.
 
     ## Output Format
