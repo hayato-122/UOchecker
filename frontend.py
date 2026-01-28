@@ -563,6 +563,8 @@ with col_main_right:
 
             # マップ表示コンテナ
             with st.container():
+                gps_zoom = 14
+
                 map_preview = folium.Map(
                     location=st.session_state.center,
                     zoom_start=st.session_state.zoom,
@@ -576,7 +578,7 @@ with col_main_right:
                         strings={"title": "現在地を表示", "popup": "現在地"},
                         locateOptions={
                             "enableHighAccuracy": True,
-                            "maxZoom": 15
+                            "maxZoom": gps_zoom,
                         }
                     ).add_to(map_preview)
 
@@ -595,16 +597,17 @@ with col_main_right:
                     returned_objects=["last_clicked","center"],
                 )
 
-                if st.session_state.marker_auto and map_folium and map_folium.get("center"):
+                if st.session_state.marker_auto and map_folium and map_folium.get("center") and map_folium.get("zoom"):
                     center_loc = [
                         map_folium["center"]["lat"],
                         map_folium["center"]["lng"],
                     ]
-                    if center_loc != [34.694659, 135.194954]:
+                    current_zoom = map_folium["zoom"]
+                    if center_loc != [34.694659, 135.194954] and current_zoom == gps_zoom:
                         st.session_state.marker_auto = False
                         st.session_state.marker_location = center_loc
                         st.session_state.center = center_loc
-                        st.session_state.zoom = 15
+                        st.session_state.zoom = current_zoom
                         update_address(st.session_state.marker_location)
                         st.rerun()
 
