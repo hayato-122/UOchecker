@@ -50,47 +50,48 @@ longitude: float = None) -> Dict:
     print(f"Protected species: {protected_species}")
     print(f"Restrictions: {restrictions}")
     protected_species_str = ", ".join(protected_species)
-    prompt = prompt = f"""Identify the fish species in this image captured near {location}.
 
-Follow this systematic identification process:
+    prompt = f"""
+    Act as a forensic ichthyologist.
+    The user believes this fish might be **Takifugu poecilonotus (Komonfugu)**, but it is often confused with **Takifugu alboplumbeus (Kusafugu)**.
+    Your task is to verify this hypothesis with extreme skepticism towards "Kusafugu".
 
-1. Morphological Analysis:
-   - Body shape: depth-to-length ratio, overall profile
-   - Fins: count rays, note shape/size of dorsal, caudal, pectoral, pelvic, and anal fins
-   - Head features: mouth position, jaw structure, eye size and placement
-   - Coloration: base color, patterns (stripes, spots, bands), color gradients
-   - Distinguishing marks: lateral line, fin filaments, body grooves, scales texture
+    **CRITICAL DIFFERENTIATION LOGIC**:
 
-2. Differential Diagnosis:
-   - List the most similar species
-   - Explain which specific features rule out each look-alike
-   - Justify your final identification with definitive characteristics
+    1. **The "Humeral Spot" Verification (The Shadow Trap)**:
+       - Locate the area strictly behind the pectoral fin.
+       - **Kusafugu**: MUST have a **distinct, deep black, round spot** usually edged in white.
+       - **Komonfugu**: Has NO spot, or only a vague, irregular gray blur.
+       - **WARNING**: Do NOT confuse a shadow, a fold in the skin, or dirt with a biological "spot".
+       - **Rule**: If the spot is not 100% distinct and clearly pigmented (not just a dark area), you MUST rule out Kusafugu based on this feature.
 
-3. Species Assessment:
-   - Cross-reference against restricted species list: [{protected_species_str}]
-   - Verify toxicity status (poisonous flesh, venomous spines, ciguatera risk)
-   - Confirm edibility and any consumption warnings
+    2. **Dorsal Pattern Analysis (The Tie-Breaker)**:
+       - Look at the white spots on the back.
+       - **Kusafugu**: Spots are distinct, separate, round dots (like a starry sky). They do NOT touch each other.
+       - **Komonfugu**: Spots are **irregular, variable in size, and often merge/connect** (vermicular/worm-eaten shape).
+       - **Instruction**: If you see ANY spots connecting or varying wildly in size, it is Komonfugu.
 
-Output ONLY the following JSON structure with no additional text:
+    3. **Final Verdict Formulation**:
+       - If the humeral spot is missing/ambiguous AND the back spots are irregular -> **Identify as Takifugu poecilonotus (Komonfugu)**.
+       - Only identify as Kusafugu if there is a undeniable humeral spot AND separate round dorsal dots.
 
-{{
-  "morphologicalAnalysis": "Detailed description of diagnostic features observed (body shape, fin characteristics, coloration patterns, unique markings)",
-  "differentialDiagnosis": "Explanation of how this species was distinguished from similar-looking species",
-  "fishNameJa": "魚の和名",
-  "fishNameHira": "ひらがな表記",
-  "fishNameEn": "Common English name",
-  "scientificName": "Genus species",
-  "familyName": "Family name (scientific)",
-  "isEdible": true or false,
-  "isPoisonous": false or true,
-  "poisonType": "Type of toxin if applicable, or null",
-  "isRestricted": false or true,
-  "restrictedMatch": "Matched term from list or null",
-  "confidenceLevel": "high/medium/low",
-  "additionalNotes": "Any relevant warnings, seasonal considerations, or regional variations"
-}}
+    **Legal & Safety**:
+    - Check against: [{protected_species_str}]
+    - Note: Both species are poisonous (Tetrodotoxin).
 
-Critical: Base identification on multiple confirmatory features, not single characteristics."""
+    Respond ONLY with this JSON object:
+    {{
+      "morphologicalAnalysis": "Explain your reasoning aggressively. (e.g., 'Identified as Komonfugu because the area behind the pectoral fin lacks a distinct white-edged black spot (likely just a shadow), and the white spots on the back are irregular in size/shape, which is characteristic of T. poecilonotus.')",
+      "fishNameJa": "Japanese fish name",
+      "fishNameHira": "Japanese hiragana name",
+      "fishNameEn": "English fish name",
+      "scientificName": "Scientific name",
+      "isEdible": true,
+      "isPoisonous": true,
+      "isRestricted": boolean,
+      "restrictedMatch": "The word from the list that matched or null"
+    }}
+    """
     safety_settings = {
         "HARM_CATEGORY_HARASSMENT": "BLOCK_NONE",
         "HARM_CATEGORY_HATE_SPEECH": "BLOCK_NONE",
