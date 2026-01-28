@@ -50,48 +50,83 @@ longitude: float = None) -> Dict:
     print(f"Protected species: {protected_species}")
     print(f"Restrictions: {restrictions}")
     protected_species_str = ", ".join(protected_species)
-
     prompt = f"""
-    Act as a forensic ichthyologist.
-    The user believes this fish might be **Takifugu poecilonotus (Komonfugu)**, but it is often confused with **Takifugu alboplumbeus (Kusafugu)**.
-    Your task is to verify this hypothesis with extreme skepticism towards "Kusafugu".
+        # Advanced Fish Identification & Safety Analysis Prompt
 
-    **CRITICAL DIFFERENTIATION LOGIC**:
+    ## Background
+    You are a world-renowned Ichthyologist and a specialist in Food Safety and Marine Resource Management.
+    Your task is to analyze an input image of a fish, identify the species with high precision, and determine its edibility, toxicity, and legal restrictions.
+    **You excel at distinguishing look-alike species by analyzing body shape (aspect ratio) and specific color markers.**
 
-    1. **The "Humeral Spot" Verification (The Shadow Trap)**:
-       - Locate the area strictly behind the pectoral fin.
-       - **Kusafugu**: MUST have a **distinct, deep black, round spot** usually edged in white.
-       - **Komonfugu**: Has NO spot, or only a vague, irregular gray blur.
-       - **WARNING**: Do NOT confuse a shadow, a fold in the skin, or dirt with a biological "spot".
-       - **Rule**: If the spot is not 100% distinct and clearly pigmented (not just a dark area), you MUST rule out Kusafugu based on this feature.
+    ## Instructions
+    Analyze the input and perform the following steps. Output ONLY the raw JSON object based on your analysis.
 
-    2. **Dorsal Pattern Analysis (The Tie-Breaker)**:
-       - Look at the white spots on the back.
-       - **Kusafugu**: Spots are distinct, separate, round dots (like a starry sky). They do NOT touch each other.
-       - **Komonfugu**: Spots are **irregular, variable in size, and often merge/connect** (vermicular/worm-eaten shape).
-       - **Instruction**: If you see ANY spots connecting or varying wildly in size, it is Komonfugu.
+    1.  **Species Identification (Discriminative Analysis)**: 
+        -   Identify the fish species.
 
-    3. **Final Verdict Formulation**:
-       - If the humeral spot is missing/ambiguous AND the back spots are irregular -> **Identify as Takifugu poecilonotus (Komonfugu)**.
-       - Only identify as Kusafugu if there is a undeniable humeral spot AND separate round dorsal dots.
+        -   **CRITICAL CHECK 1: Pufferfish (*Takifugu*)**:
+            -   **Target**: *Takifugu poecilonotus* (Komon-fugu) vs *Takifugu niphobles* (Kusa-fugu).
+            -   **Visual Rule**:
+                -   **Komon**: Spots are **irregular, varying in size, and often vermiculated (worm-eaten shape/fused)**. White edges on fins may be present.
+                -   **Kusa**: Spots are **small, uniform, distinct, and perfectly round**.
+            -   **Bias Correction**: **Do NOT default to Kusa-fugu.** If you see ANY spot fusion or irregularity, identify as *Takifugu poecilonotus*.
 
-    **Legal & Safety**:
-    - Check against: [{protected_species_str}]
-    - Note: Both species are poisonous (Tetrodotoxin).
+        -   **CRITICAL CHECK 2: Blue/Green Fish Complex (Trevally vs Jobfish)**:
+            -   **Target**: Distinguish *Caranx* (Trevally) from *Aprion* (Jobfish).
+            -   **Step A: Check Body Shape (Crucial)**:
+                -   **Elongated/Torpedo-shaped**: Likely **Aochibiki** (*Aprion virescens*). Look for a deep groove in front of the eyes.
+                -   **Compressed/Flat/High-body**: Likely **Trevally** (*Caranx*).
+            -   **Step B: Check Color Markers**:
+                -   **Aochibiki**: Solid greenish-grey or blue-grey. **NO distinct electric blue speckles.**
+                -   **Kasumi-aji**: **Electric blue spots/speckles** on body and bright blue fins.
+                -   **Gingame-aji**: Small distinct black spot on operculum + NO blue spots.
+            -   **Decision**: 
+                -   If torpedo-shaped + no blue spots -> **Aochibiki**.
+                -   If flat body + blue spots -> **Kasumi-aji**.
+                -   If flat body + gill spot -> **Gingame-aji**.
 
-    Respond ONLY with this JSON object:
+        -   **CRITICAL CHECK 3: Shellfish (Abalone vs Tokobushi)**:
+            -   **Target**: *Haliotis* spp.
+            -   **Rule**: Priority on structure. **Raised/Chimney-like pores** = Awabi. **Flat/Flush pores** = Tokobushi.
+
+    2.  **Name Extraction**: Provide the following names:
+        -   `fishNameJa`: Standard Japanese name (Standard Wamei).
+        -   `fishNameHira`: Japanese name in Hiragana (for pronunciation).
+        -   `fishNameEn`: Common English name.
+        -   `scientificName`: Scientific binomial name.
+
+    3.  **Safety Assessment**:
+        -   Determine if the fish is generally considered edible (`isEdible`).
+        -   Strictly check for poison (`isPoisonous`).
+            -   *Note*: Pufferfish are poisonous (TTX).
+            -   *Note*: Large Aochibiki and Trevally in tropical waters *can* carry Ciguatera, but are generally edible in main Japanese markets. Follow "Safety First" if uncertain.
+        -   **Safety Protocol**: If uncertain, err on the side of caution.
+
+    4.  **Regulatory Check (CRITICAL)**:
+        -   **LOCAL REGULATION CHECK**: Verify if the identified species corresponds to any name in this restricted list: [{protected_species_str}].
+        -   **General Check**: Check if the fish is restricted under CITES, the IUCN Red List, or Japanese Fishery Laws.
+        -   **Action**: If the species (or its family/aliases) matches the list or general laws, set `isRestricted` to `true`. Otherwise `false`.
+
+    5.  **Formatting**: Output the result strictly as a valid JSON object matching the defined schema. Do not include markdown formatting (like ```json ... ```) or explanatory text.
+
+    ## Parameters
+    -   **Geographic Context**: Japanese waters and markets.
+    -   **Toxicity Threshold**: Strict.
+    -   **Output Language**: Values for names must correspond to the specific language requested.
+
+    ## Output Format
+    ```json
     {{
-      "morphologicalAnalysis": "Explain your reasoning aggressively. (e.g., 'Identified as Komonfugu because the area behind the pectoral fin lacks a distinct white-edged black spot (likely just a shadow), and the white spots on the back are irregular in size/shape, which is characteristic of T. poecilonotus.')",
-      "fishNameJa": "Japanese fish name",
-      "fishNameHira": "Japanese hiragana name",
-      "fishNameEn": "English fish name",
-      "scientificName": "Scientific name",
+      "fishNameJa": "String (Standard Japanese Name)",
+      "fishNameHira": "String (Hiragana)",
+      "fishNameEn": "String (English Name)",
+      "scientificName": "String (Scientific Name)",
       "isEdible": true,
-      "isPoisonous": true,
-      "isRestricted": boolean,
-      "restrictedMatch": "The word from the list that matched or null"
+      "isPoisonous": false,
+      "isRestricted": false
     }}
     """
+
     safety_settings = {
         "HARM_CATEGORY_HARASSMENT": "BLOCK_NONE",
         "HARM_CATEGORY_HATE_SPEECH": "BLOCK_NONE",
