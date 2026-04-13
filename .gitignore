@@ -230,3 +230,6 @@ Thumbs.db
 /anthropic_key.txt
 /ocp_api_key.txt
 /gemini_api_key.txt
+
+# --- Custom Ignore ---
+README.md
