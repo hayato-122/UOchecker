@@ -1,0 +1,20 @@
+name: Sync to Hugging Face
+
+on:
+  push:
+    branches: [feature-hugging]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Push to Hugging Face
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git remote add hf https://USER:$HF_TOKEN@huggingface.co/spaces/hayato-122/UOchecker
+          git push hf main --force
