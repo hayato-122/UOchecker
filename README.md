@@ -24,13 +24,13 @@
 
 |            検索による位置情報設定            |            GPSによる位置情報設定             |
 | :------------------------------------------: | :------------------------------------------: |
-| <img src="./image/gps_info.gif" width="480"> | <img src="./image/gps_info.jpg" width="480"> |
+| <img src="./image/gps_info.gif" width="360"> | <img src="./image/gps_info.jpg" width="360"> |
 
 ### 📷画像から魚種の識別および毒性の有無を判定&📍座標の漁業権情報と比較
 
 |                画像のアップロード                |                 結果の表示                 |
 | :----------------------------------------------: | :----------------------------------------: |
-| <img src="./image/image_upload.gif" width="480"> | <img src="./image/result.gif" width="480"> |
+| <img src="./image/image_upload.gif" width="360"> | <img src="./image/result.gif" width="360"> |
 
 ## 使用技術
 
