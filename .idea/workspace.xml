@@ -1,0 +1,587 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="a0033a1d-d5b9-4dae-82b6-ca76b0a8eaa2" name="変更" comment="update: プロンプトを変更しました。&#10;&#10;漁業権判定を正確に行うために" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Merge.Settings">
+    <option name="BRANCH" value="origin/main" />
+    <option name="OPTIONS">
+      <set>
+        <option value="ALLOW_UNRELATED_HISTORIES" />
+      </set>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="feature-hugging" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="HARD" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;hayato-122&quot;
+  }
+}</component>
+  <component name="GitToolBoxStore">
+    <option name="recentBranches">
+      <RecentBranches>
+        <option name="branchesForRepo">
+          <list>
+            <RecentBranchesForRepo>
+              <option name="branches">
+                <list>
+                  <RecentBranch>
+                    <option name="branchName" value="latest_branch" />
+                    <option name="lastUsedInstant" value="1776101422" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="feature-hugging" />
+                    <option name="lastUsedInstant" value="1776099559" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="main" />
+                    <option name="lastUsedInstant" value="1769620597" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="main-hugging" />
+                    <option name="lastUsedInstant" value="1767835193" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="feature-deploy" />
+                    <option name="lastUsedInstant" value="1765773460" />
+                  </RecentBranch>
+                </list>
+              </option>
+              <option name="repositoryRootUrl" value="file://$PROJECT_DIR$" />
+            </RecentBranchesForRepo>
+          </list>
+        </option>
+      </RecentBranches>
+    </option>
+  </component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/hayato-122/UOchecker.git&quot;,
+    &quot;accountId&quot;: &quot;b3683dea-4582-4dd4-a9e5-25baab316145&quot;
+  }
+}</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/../interpriter/test/Lib/site-packages/grpc/_interceptor.py" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 3
+}</component>
+  <component name="ProjectId" id="35aIJXiEwgo30p8UJozXbKmoYsa" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.check_folium.executor": "Run",
+    "Python.frontend.executor": "Run",
+    "Python.verify_setup.executor": "Run",
+    "Python.vision_api.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "feature-hugging の #22",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "C:/python/UOchecker/image",
+    "settings.editor.selected.configurable": "preferences.lookFeel"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\python\UOchecker\image" />
+      <recent name="C:\python\UOchecker\utils" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\python\UOchecker\utils" />
+      <recent name="C:\python\UOchecker\image\title_logo" />
+      <recent name="C:\python\UOchecker\image" />
+    </key>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-a101402ee41c-968fe969f28a-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.28238.29" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration>C:\Users\hayat\AppData\Roaming\Subversion</configuration>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="デフォルトタスク">
+      <changelist id="a0033a1d-d5b9-4dae-82b6-ca76b0a8eaa2" name="変更" comment="" />
+      <created>1763341685809</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1763341685809</updated>
+    </task>
+    <task id="LOCAL-00070" summary="update: APIキー読み込みロジックを変更しました&#10;hugging faceでAPIキーを読み込めないため">
+      <option name="closed" value="true" />
+      <created>1765772316057</created>
+      <option name="number" value="00070" />
+      <option name="presentableId" value="LOCAL-00070" />
+      <option name="project" value="LOCAL" />
+      <updated>1765772316057</updated>
+    </task>
+    <task id="LOCAL-00071" summary="update: 必要ないimportを削除しました&#10;&#10;API認証に使用しなくなったため">
+      <option name="closed" value="true" />
+      <created>1765773446622</created>
+      <option name="number" value="00071" />
+      <option name="presentableId" value="LOCAL-00071" />
+      <option name="project" value="LOCAL" />
+      <updated>1765773446622</updated>
+    </task>
+    <task id="LOCAL-00072" summary="Merge: マージを行いました">
+      <option name="closed" value="true" />
+      <created>1765774317796</created>
+      <option name="number" value="00072" />
+      <option name="presentableId" value="LOCAL-00072" />
+      <option name="project" value="LOCAL" />
+      <updated>1765774317796</updated>
+    </task>
+    <task id="LOCAL-00073" summary="fix: tryが入れ子になっていたのを修正&#10;&#10;プログラムが実行できないため">
+      <option name="closed" value="true" />
+      <created>1765776328110</created>
+      <option name="number" value="00073" />
+      <option name="presentableId" value="LOCAL-00073" />
+      <option name="project" value="LOCAL" />
+      <updated>1765776328110</updated>
+    </task>
+    <task id="LOCAL-00074" summary="update: タイトルロゴとサブタイトルが画像の追加、表示&#10;&#10;見栄えを良くするため">
+      <option name="closed" value="true" />
+      <created>1765777880441</created>
+      <option name="number" value="00074" />
+      <option name="presentableId" value="LOCAL-00074" />
+      <option name="project" value="LOCAL" />
+      <updated>1765777880442</updated>
+    </task>
+    <task id="LOCAL-00075" summary="update: 画像を選択ボタンのフォントを変更&#10;&#10;見栄えを良くするため">
+      <option name="closed" value="true" />
+      <created>1767016108639</created>
+      <option name="number" value="00075" />
+      <option name="presentableId" value="LOCAL-00075" />
+      <option name="project" value="LOCAL" />
+      <updated>1767016108639</updated>
+    </task>
+    <task id="LOCAL-00076" summary="update: 結果表示画面を見やすく変更&#10;&#10;見栄えを良くするため">
+      <option name="closed" value="true" />
+      <created>1767638741319</created>
+      <option name="number" value="00076" />
+      <option name="presentableId" value="LOCAL-00076" />
+      <option name="project" value="LOCAL" />
+      <updated>1767638741319</updated>
+    </task>
+    <task id="LOCAL-00077" summary="update: 携帯表示の時のマップ画面の高さを調整&#10;&#10;操作性を改善するため">
+      <option name="closed" value="true" />
+      <created>1767640264838</created>
+      <option name="number" value="00077" />
+      <option name="presentableId" value="LOCAL-00077" />
+      <option name="project" value="LOCAL" />
+      <updated>1767640264838</updated>
+    </task>
+    <task id="LOCAL-00078" summary="update:　結果表示テキストを中央揃えに変更&#10;&#10;見栄えを良くするため">
+      <option name="closed" value="true" />
+      <created>1767640628709</created>
+      <option name="number" value="00078" />
+      <option name="presentableId" value="LOCAL-00078" />
+      <option name="project" value="LOCAL" />
+      <updated>1767640628709</updated>
+    </task>
+    <task id="LOCAL-00079" summary="add:fishery_rights_api_file.py">
+      <option name="closed" value="true" />
+      <created>1767677040780</created>
+      <option name="number" value="00079" />
+      <option name="presentableId" value="LOCAL-00079" />
+      <option name="project" value="LOCAL" />
+      <updated>1767677040780</updated>
+    </task>
+    <task id="LOCAL-00080" summary="fix: 起動できるようにマージしました">
+      <option name="closed" value="true" />
+      <created>1767678963717</created>
+      <option name="number" value="00080" />
+      <option name="presentableId" value="LOCAL-00080" />
+      <option name="project" value="LOCAL" />
+      <updated>1767678963717</updated>
+    </task>
+    <task id="LOCAL-00081" summary="fix: cssが正しく反映されるようにしました">
+      <option name="closed" value="true" />
+      <created>1767768425197</created>
+      <option name="number" value="00081" />
+      <option name="presentableId" value="LOCAL-00081" />
+      <option name="project" value="LOCAL" />
+      <updated>1767768425197</updated>
+    </task>
+    <task id="LOCAL-00082" summary="update: APIキー登録のロジックを変更しました&#10;&#10;StreamlitCloudを使用しなくなったため">
+      <option name="closed" value="true" />
+      <created>1767830808445</created>
+      <option name="number" value="00082" />
+      <option name="presentableId" value="LOCAL-00082" />
+      <option name="project" value="LOCAL" />
+      <updated>1767830808445</updated>
+    </task>
+    <task id="LOCAL-00083" summary="fix: gitattributesの中を削除してlfsからXetでgifを管理するようにしました&#10;&#10;github actionsが行えないため">
+      <option name="closed" value="true" />
+      <created>1767831145560</created>
+      <option name="number" value="00083" />
+      <option name="presentableId" value="LOCAL-00083" />
+      <option name="project" value="LOCAL" />
+      <updated>1767831145560</updated>
+    </task>
+    <task id="LOCAL-00084" summary="fix: wave_load.gifと.gitattributesを削除しました&#10;&#10;github actionsが行えないため">
+      <option name="closed" value="true" />
+      <created>1767831459139</created>
+      <option name="number" value="00084" />
+      <option name="presentableId" value="LOCAL-00084" />
+      <option name="project" value="LOCAL" />
+      <updated>1767831459139</updated>
+    </task>
+    <task id="LOCAL-00085" summary="add: .gitattributesにimageを登録しました&#10;&#10;github actionsが行えないため">
+      <option name="closed" value="true" />
+      <created>1767832104433</created>
+      <option name="number" value="00085" />
+      <option name="presentableId" value="LOCAL-00085" />
+      <option name="project" value="LOCAL" />
+      <updated>1767832104433</updated>
+    </task>
+    <task id="LOCAL-00086" summary="add: .gitattributesにimageを登録しました&#10;&#10;github actionsが行えないため">
+      <option name="closed" value="true" />
+      <created>1767832365533</created>
+      <option name="number" value="00086" />
+      <option name="presentableId" value="LOCAL-00086" />
+      <option name="project" value="LOCAL" />
+      <updated>1767832365533</updated>
+    </task>
+    <task id="LOCAL-00087" summary="add: .gitattributesにimageを登録しました&#10;&#10;github actionsが行えないため">
+      <option name="closed" value="true" />
+      <created>1767833334196</created>
+      <option name="number" value="00087" />
+      <option name="presentableId" value="LOCAL-00087" />
+      <option name="project" value="LOCAL" />
+      <updated>1767833334196</updated>
+    </task>
+    <task id="LOCAL-00088" summary="update: ymlファイルを変更しました&#10;&#10;lfsからXetに変更するため">
+      <option name="closed" value="true" />
+      <created>1767833683761</created>
+      <option name="number" value="00088" />
+      <option name="presentableId" value="LOCAL-00088" />
+      <option name="project" value="LOCAL" />
+      <updated>1767833683761</updated>
+    </task>
+    <task id="LOCAL-00089" summary="update: ymlファイルを変更しました&#10;&#10;lfsからXetに変更するため">
+      <option name="closed" value="true" />
+      <created>1767833698701</created>
+      <option name="number" value="00089" />
+      <option name="presentableId" value="LOCAL-00089" />
+      <option name="project" value="LOCAL" />
+      <updated>1767833698701</updated>
+    </task>
+    <task id="LOCAL-00090" summary="fix: ymlファイルを変更しました&#10;&#10;Xetをインストールできないため">
+      <option name="closed" value="true" />
+      <created>1767834030089</created>
+      <option name="number" value="00090" />
+      <option name="presentableId" value="LOCAL-00090" />
+      <option name="project" value="LOCAL" />
+      <updated>1767834030089</updated>
+    </task>
+    <task id="LOCAL-00091" summary="fix: ymlファイルを変更しました&#10;&#10;Xetをインストールできないため">
+      <option name="closed" value="true" />
+      <created>1767834186377</created>
+      <option name="number" value="00091" />
+      <option name="presentableId" value="LOCAL-00091" />
+      <option name="project" value="LOCAL" />
+      <updated>1767834186377</updated>
+    </task>
+    <task id="LOCAL-00092" summary="add: .gitattributes">
+      <option name="closed" value="true" />
+      <created>1767834375949</created>
+      <option name="number" value="00092" />
+      <option name="presentableId" value="LOCAL-00092" />
+      <option name="project" value="LOCAL" />
+      <updated>1767834375949</updated>
+    </task>
+    <task id="LOCAL-00093" summary="add: .gitattributes">
+      <option name="closed" value="true" />
+      <created>1767834499167</created>
+      <option name="number" value="00093" />
+      <option name="presentableId" value="LOCAL-00093" />
+      <option name="project" value="LOCAL" />
+      <updated>1767834499167</updated>
+    </task>
+    <task id="LOCAL-00094" summary="fix: ymlを変更&#10;&#10;actionsがエラーになるため">
+      <option name="closed" value="true" />
+      <created>1767834983862</created>
+      <option name="number" value="00094" />
+      <option name="presentableId" value="LOCAL-00094" />
+      <option name="project" value="LOCAL" />
+      <updated>1767834983862</updated>
+    </task>
+    <task id="LOCAL-00095" summary="add: main-huggingブランチ">
+      <option name="closed" value="true" />
+      <created>1767835310684</created>
+      <option name="number" value="00095" />
+      <option name="presentableId" value="LOCAL-00095" />
+      <option name="project" value="LOCAL" />
+      <updated>1767835310685</updated>
+    </task>
+    <task id="LOCAL-00096" summary="update: ymlを変更&#10;&#10;main-huggingを反映させるため">
+      <option name="closed" value="true" />
+      <created>1767835447091</created>
+      <option name="number" value="00096" />
+      <option name="presentableId" value="LOCAL-00096" />
+      <option name="project" value="LOCAL" />
+      <updated>1767835447091</updated>
+    </task>
+    <task id="LOCAL-00097" summary="delete: ymlファイルを削除&#10;&#10;actionsの動作が不安定なため">
+      <option name="closed" value="true" />
+      <created>1767836154472</created>
+      <option name="number" value="00097" />
+      <option name="presentableId" value="LOCAL-00097" />
+      <option name="project" value="LOCAL" />
+      <updated>1767836154472</updated>
+    </task>
+    <task id="LOCAL-00098" summary="update: firebaseの設定の初期化をbackend.pyで行うようにしました">
+      <option name="closed" value="true" />
+      <created>1767837916029</created>
+      <option name="number" value="00098" />
+      <option name="presentableId" value="LOCAL-00098" />
+      <option name="project" value="LOCAL" />
+      <updated>1767837916029</updated>
+    </task>
+    <task id="LOCAL-00099" summary="update: firebaseの設定の初期化をbackend.pyで行うようにしました">
+      <option name="closed" value="true" />
+      <created>1767838415585</created>
+      <option name="number" value="00099" />
+      <option name="presentableId" value="LOCAL-00099" />
+      <option name="project" value="LOCAL" />
+      <updated>1767838415585</updated>
+    </task>
+    <task id="LOCAL-00100" summary="update: 画像を選択ボタンにアニメーションを追加しました&#10;&#10;画面に動きがなく、簡素すぎたため">
+      <option name="closed" value="true" />
+      <created>1767920077268</created>
+      <option name="number" value="00100" />
+      <option name="presentableId" value="LOCAL-00100" />
+      <option name="project" value="LOCAL" />
+      <updated>1767920077269</updated>
+    </task>
+    <task id="LOCAL-00101" summary="update: 結果表示の余白を調整しました&#10;&#10;文字が改行されすぎてしまうため">
+      <option name="closed" value="true" />
+      <created>1767922658241</created>
+      <option name="number" value="00101" />
+      <option name="presentableId" value="LOCAL-00101" />
+      <option name="project" value="LOCAL" />
+      <updated>1767922658241</updated>
+    </task>
+    <task id="LOCAL-00102" summary="update">
+      <option name="closed" value="true" />
+      <created>1767937021928</created>
+      <option name="number" value="00102" />
+      <option name="presentableId" value="LOCAL-00102" />
+      <option name="project" value="LOCAL" />
+      <updated>1767937021928</updated>
+    </task>
+    <task id="LOCAL-00103" summary="fix: APIキー認証ロジックを変更しました">
+      <option name="closed" value="true" />
+      <created>1767939678957</created>
+      <option name="number" value="00103" />
+      <option name="presentableId" value="LOCAL-00103" />
+      <option name="project" value="LOCAL" />
+      <updated>1767939678957</updated>
+    </task>
+    <task id="LOCAL-00104" summary="fix: gifをmp4に変更しました&#10;&#10;huggingfaceでgifのロード画面が表示できないため">
+      <option name="closed" value="true" />
+      <created>1768264052931</created>
+      <option name="number" value="00104" />
+      <option name="presentableId" value="LOCAL-00104" />
+      <option name="project" value="LOCAL" />
+      <updated>1768264052931</updated>
+    </task>
+    <task id="LOCAL-00105" summary="fix: API認証ロジックを変更&#10;&#10;ローカル、huggngfaceでAPIが通らないため">
+      <option name="closed" value="true" />
+      <created>1768273798027</created>
+      <option name="number" value="00105" />
+      <option name="presentableId" value="LOCAL-00105" />
+      <option name="project" value="LOCAL" />
+      <updated>1768273798027</updated>
+    </task>
+    <task id="LOCAL-00106" summary="update: 画像を選択ボタンの細かいレイアウトの調整&#10;&#10;少しズレていたため">
+      <option name="closed" value="true" />
+      <created>1768483618565</created>
+      <option name="number" value="00106" />
+      <option name="presentableId" value="LOCAL-00106" />
+      <option name="project" value="LOCAL" />
+      <updated>1768483618566</updated>
+    </task>
+    <task id="LOCAL-00107" summary="update: APIキーの登録　リクエストのロジック編集">
+      <option name="closed" value="true" />
+      <created>1768483652371</created>
+      <option name="number" value="00107" />
+      <option name="presentableId" value="LOCAL-00107" />
+      <option name="project" value="LOCAL" />
+      <updated>1768483652371</updated>
+    </task>
+    <task id="LOCAL-00108" summary="update: APIキーの読み込みファイル名の変更">
+      <option name="closed" value="true" />
+      <created>1768483687135</created>
+      <option name="number" value="00108" />
+      <option name="presentableId" value="LOCAL-00108" />
+      <option name="project" value="LOCAL" />
+      <updated>1768483687135</updated>
+    </task>
+    <task id="LOCAL-00109" summary="fix: 携帯表示の調整&#10;&#10;レイアウトがずれていたため">
+      <option name="closed" value="true" />
+      <created>1768540739913</created>
+      <option name="number" value="00109" />
+      <option name="presentableId" value="LOCAL-00109" />
+      <option name="project" value="LOCAL" />
+      <updated>1768540739913</updated>
+    </task>
+    <task id="LOCAL-00110" summary="update: 漁業権情報を正しく出力するようにしました">
+      <option name="closed" value="true" />
+      <created>1768741134569</created>
+      <option name="number" value="00110" />
+      <option name="presentableId" value="LOCAL-00110" />
+      <option name="project" value="LOCAL" />
+      <updated>1768741134570</updated>
+    </task>
+    <task id="LOCAL-00111" summary="update: 漁業権情報を正しく出力するようにしました">
+      <option name="closed" value="true" />
+      <created>1768741143772</created>
+      <option name="number" value="00111" />
+      <option name="presentableId" value="LOCAL-00111" />
+      <option name="project" value="LOCAL" />
+      <updated>1768741143772</updated>
+    </task>
+    <task id="LOCAL-00112" summary="update: 漁業権情報を正しく出力するようにしました">
+      <option name="closed" value="true" />
+      <created>1768741151429</created>
+      <option name="number" value="00112" />
+      <option name="presentableId" value="LOCAL-00112" />
+      <option name="project" value="LOCAL" />
+      <updated>1768741151429</updated>
+    </task>
+    <task id="LOCAL-00113" summary="fix: APIキー認証のファイル名を変更">
+      <option name="closed" value="true" />
+      <created>1768742560702</created>
+      <option name="number" value="00113" />
+      <option name="presentableId" value="LOCAL-00113" />
+      <option name="project" value="LOCAL" />
+      <updated>1768742560702</updated>
+    </task>
+    <task id="LOCAL-00114" summary="update: ロード画面を最初に読み込むように&#10;&#10;処理を軽くするため">
+      <option name="closed" value="true" />
+      <created>1768745343780</created>
+      <option name="number" value="00114" />
+      <option name="presentableId" value="LOCAL-00114" />
+      <option name="project" value="LOCAL" />
+      <updated>1768745343780</updated>
+    </task>
+    <task id="LOCAL-00115" summary="update: 位置情報検索をenterキーでできるようにしました">
+      <option name="closed" value="true" />
+      <created>1768746592729</created>
+      <option name="number" value="00115" />
+      <option name="presentableId" value="LOCAL-00115" />
+      <option name="project" value="LOCAL" />
+      <updated>1768746592729</updated>
+    </task>
+    <task id="LOCAL-00116" summary="delete: 使用していないファイルを削除">
+      <option name="closed" value="true" />
+      <created>1768788157380</created>
+      <option name="number" value="00116" />
+      <option name="presentableId" value="LOCAL-00116" />
+      <option name="project" value="LOCAL" />
+      <updated>1768788157380</updated>
+    </task>
+    <task id="LOCAL-00117" summary="update: README.mdをdockerに合わせたものに変更">
+      <option name="closed" value="true" />
+      <created>1768788227116</created>
+      <option name="number" value="00117" />
+      <option name="presentableId" value="LOCAL-00117" />
+      <option name="project" value="LOCAL" />
+      <updated>1768788227116</updated>
+    </task>
+    <task id="LOCAL-00118" summary="update: README.mdをdockerに合わせたものに変更">
+      <option name="closed" value="true" />
+      <created>1768788739594</created>
+      <option name="number" value="00118" />
+      <option name="presentableId" value="LOCAL-00118" />
+      <option name="project" value="LOCAL" />
+      <updated>1768788739594</updated>
+    </task>
+    <option name="localTasksCounter" value="119" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="add: .gitattributesにimageを登録しました&#10;&#10;github actionsが行えないため" />
+    <MESSAGE value="update: ymlファイルを変更しました&#10;&#10;lfsからXetに変更するため" />
+    <MESSAGE value="fix: ymlファイルを変更しました&#10;&#10;Xetをインストールできないため" />
+    <MESSAGE value="add: .gitattributes" />
+    <MESSAGE value="fix: ymlを変更&#10;&#10;actionsがエラーになるため" />
+    <MESSAGE value="add: main-huggingブランチ" />
+    <MESSAGE value="update: ymlを変更&#10;&#10;main-huggingを反映させるため" />
+    <MESSAGE value="delete: ymlファイルを削除&#10;&#10;actionsの動作が不安定なため" />
+    <MESSAGE value="update: firebaseの設定の初期化をbackend.pyで行うようにしました" />
+    <MESSAGE value="update: 画像を選択ボタンにアニメーションを追加しました&#10;&#10;画面に動きがなく、簡素すぎたため" />
+    <MESSAGE value="update: 結果表示の余白を調整しました&#10;&#10;文字が改行されすぎてしまうため" />
+    <MESSAGE value="update" />
+    <MESSAGE value="fix: APIキー認証ロジックを変更しました" />
+    <MESSAGE value="fix: gifをmp4に変更しました&#10;&#10;huggingfaceでgifのロード画面が表示できないため" />
+    <MESSAGE value="fix: API認証ロジックを変更&#10;&#10;ローカル、huggngfaceでAPIが通らないため" />
+    <MESSAGE value="update: 画像を選択ボタンの細かいレイアウトの調整&#10;&#10;少しズレていたため" />
+    <MESSAGE value="update: APIキーの登録　リクエストのロジック編集" />
+    <MESSAGE value="update: APIキーの読み込みファイル名の変更" />
+    <MESSAGE value="fix: 携帯表示の調整&#10;&#10;レイアウトがずれていたため" />
+    <MESSAGE value="update: 漁業権情報を正しく出力するようにしました" />
+    <MESSAGE value="fix: APIキー認証のファイル名を変更" />
+    <MESSAGE value="update: ロード画面を最初に読み込むように&#10;&#10;処理を軽くするため" />
+    <MESSAGE value="update: 位置情報検索をenterキーでできるようにしました" />
+    <MESSAGE value="delete: 使用していないファイルを削除" />
+    <MESSAGE value="update: README.mdをdockerに合わせたものに変更" />
+    <option name="LAST_COMMIT_MESSAGE" value="update: README.mdをdockerに合わせたものに変更" />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
+  </component>
+</project>
