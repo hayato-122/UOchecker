@@ -1,0 +1,27 @@
+name: Sync to Hugging Face
+
+on:
+  push:
+    branches: [feature-hugging]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Git LFS
+        run: |
+          git lfs install
+          git lfs track "*.mp4"
+          git lfs track "*.gif"
+          git add .gitattributes
+
+      - name: Push to Hugging Face
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git remote add hf https://hayato-122:$HF_TOKEN@huggingface.co/spaces/hayato-122/UOchecker
+          git push hf feature-hugging:main --force
