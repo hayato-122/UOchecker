@@ -128,7 +128,7 @@ longitude: float = None) -> Dict:
     try:
         print(f"Sending to Gemini API: {location}")
 
-        model = genai.GenerativeModel("gemini-3-flash-preview")
+        model = genai.GenerativeModel("gemini-3.5-flash-lite")
 
         response = model.generate_content(
             contents=[
